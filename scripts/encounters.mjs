@@ -1,5 +1,6 @@
 import {Rng} from './rng.mjs';
 import {kartePlacement} from './generator.mjs';
+import {PUZZLES} from './puzzles.mjs';
 // Numeric rule data: D&D Beyond Basic Rules 2014, Building Combat Encounters;
 // Free Rules 2024, DM's Toolbox, XP Budget per Character.
 const T14=[[25,50,75,100],[50,100,150,200],[75,150,225,400],[125,250,375,500],[250,500,750,1100],[300,600,900,1400],[350,750,1100,1700],[450,900,1400,2100],[550,1100,1600,2400],[600,1200,1900,2800],[800,1600,2400,3600],[1000,2000,3000,4500],[1100,2200,3400,5100],[1250,2500,3800,5700],[1400,2800,4300,6400],[1600,3200,4800,7200],[2000,3900,5900,8800],[2100,4200,6300,9500],[2400,4900,7300,10900],[2800,5700,8500,12700]];
@@ -18,12 +19,12 @@ export function adjustedXP(monsters, rules, partySize){
  i+=partySize<3?1:partySize>=6?-1:0;return raw*[0.5,1,1.5,2,2.5,3,4,5][i];
 }
 const TYPE={katakombe:['undead','fiend','construct'],hoehle:['beast','monstrosity','ooze','elemental'],turm:['construct','elemental','aberration','humanoid'],stadt:['humanoid','beast','fiend','undead']};
-export function chooseEncounter(catalog, config, theme, rng){
+export function chooseEncounter(catalog, config, theme, rng, options={}){
  const cap=budget(config.levels,config.rules,config.difficulty);const candidates=catalog.filter(m=>Number.isFinite(m.cr)&&m.cr<=(config.maxCR??30)&&m.xp>0&&TYPE[theme]?.includes(m.type)&&m.xp<=cap);
  let result=[];
- for(let i=0;i<Math.min(8,config.levels.length*2);i++){
+ for(let i=0;i<Math.min(8,config.levels.length*2,options.maxMonsters??8);i++){
    const fits=candidates.filter(m=>adjustedXP([...result,m],config.rules,config.levels.length)<=cap);
-   if(!fits.length)break;const sorted=fits.sort((a,b)=>b.xp-a.xp||a.name.localeCompare(b.name));result.push(rng.pick(sorted.slice(0,Math.min(5,sorted.length))));
+   if(!fits.length)break;const sorted=fits.sort((a,b)=>b.xp-a.xp||a.name.localeCompare(b.name));result.push(i===0&&options.elite?sorted[0]:rng.pick(sorted.slice(0,Math.min(5,sorted.length))));
    if(adjustedXP(result,config.rules,config.levels.length)>=cap*.7)break;
  }
  return {monsters:result,budget:cap,adjusted:adjustedXP(result,config.rules,config.levels.length)};
@@ -37,18 +38,42 @@ export async function monsterCatalog(){
  }catch(e){console.warn('The Dungeon: compendium',pack.collection,e);}}
  cached=result.sort((a,b)=>a.uuid.localeCompare(b.uuid));return cached;
 }
+// Explicit markers override random density; a zero density disables only unmarked content.
+// Protected start/arrival/sanctuary rooms remain free of hostile content.
 export function roomContent(dungeon,ebene,placement,catalog=[]){
  const rng=new Rng(`${dungeon.seed}:${ebene.nr}:${placement.id}:${placement.karte}`),conf=dungeon.config??{};
  const d=conf.dichten??{gegner:.4,fallen:.2,raetsel:.15,schaetze:.3};
- const safe=ebene.typ==='sanctuary'||['eingang','ankunft','sanktum','treppe','gang','sackgasse'].includes(placement.kategorie);
+ const safe=ebene.typ==='sanctuary'||['eingang','ankunft','sanktum'].includes(placement.kategorie);
  const result={};if(safe)return result;
- const k=kartePlacement(ebene,placement),floor=k.zellen.flatMap((row,y)=>row.flatMap((z,x)=>z.boden&&!k.tueren.some(t=>t.cx===x&&t.cy===y)&&!k.marker.some(m=>m.cx===x&&m.cy===y&&['treppe','portal','eingang'].includes(m.art))?[{x:placement.x+x,y:placement.y+y}]:[]));
+ const randomAllowed=!['treppe','gang','sackgasse'].includes(placement.kategorie);
+ const k=kartePlacement(ebene,placement);
+ const markers=k.marker.map(m=>({art:m.art,x:placement.x+m.cx,y:placement.y+m.cy}));
+ const reserved=new Set(markers.map(m=>m.x+','+m.y));
+ const floor=k.zellen.flatMap((row,y)=>row.flatMap((z,x)=>z.boden&&!k.tueren.some(t=>t.cx===x&&t.cy===y)&&!reserved.has((placement.x+x)+','+(placement.y+y))?[{x:placement.x+x,y:placement.y+y}]:[]));
  const cells=rng.shuffle(floor);const take=()=>cells.shift();
  const config={levels:(conf.levels??[3,3,3,3]).map(l=>Math.min(20,l+(ebene.nr-1)*(conf.levelStep??0))),rules:conf.rules??'2024',difficulty:conf.difficulty??'moderate',maxCR:conf.maxCR??30};
- if(rng.chance(d.gegner)){const e=chooseEncounter(catalog,config,dungeon.thema,rng);const monsters=e.monsters.slice(0,cells.length).map(m=>({...m,...take()}));result.encounter={...e,monsters,adjusted:adjustedXP(monsters,config.rules,config.levels.length)};}
- if(cells.length&&rng.chance(d.schaetze))result.loot={...take(),...lootFor(dungeon.thema,Math.max(...config.levels),rng)};
- if(cells.length&&rng.chance(d.fallen))result.trap={...take(),...trapFor(dungeon.thema,Math.max(...config.levels),rng)};
- if(cells.length&&rng.chance(d.raetsel))result.puzzle={...take(),id:rng.int(1,108)};
+ const lvl=Math.max(...config.levels),theme=dungeon.thema;
+ const positions=arts=>markers.filter(m=>arts.includes(m.art)).map(({art,...pos})=>pos);
+ const enemies=positions(['gegner-elite']).concat(positions(['gegner']));
+ const elite=markers.some(m=>m.art==='gegner-elite')||placement.kategorie==='boss';
+ if(enemies.length||(randomAllowed&&cells.length&&rng.chance(d.gegner))){
+  const slots=enemies.length?enemies:cells;
+  const encounter=chooseEncounter(catalog,config,theme,rng,{maxMonsters:slots.length,elite});
+  const monsters=encounter.monsters.map(m=>({...m,...(enemies.length?enemies.shift():take())}));
+  result.encounter={...encounter,monsters,adjusted:adjustedXP(monsters,config.rules,config.levels.length),elite,unfilled:enemies};
+ }
+ function objects(arts,chance,make){
+  const fixed=positions(arts);
+  if(fixed.length)return fixed.map(pos=>({...pos,...make()}));
+  if(randomAllowed&&cells.length&&rng.chance(chance))return [{...take(),...make()}];
+  return [];
+ }
+ const loots=objects(['truhe'],d.schaetze,()=>lootFor(theme,lvl,rng));
+ const traps=objects(['falle'],d.fallen,()=>trapFor(theme,lvl,rng));
+ const puzzles=objects(['raetsel'],d.raetsel,()=>({id:rng.int(1,PUZZLES.length)}));
+ if(loots.length){result.loots=loots;result.loot=loots[0];}
+ if(traps.length){result.traps=traps;result.trap=traps[0];}
+ if(puzzles.length){result.puzzles=puzzles;result.puzzle=puzzles[0];}
  return result;
 }
 const LOOT={katakombe:['Grabbeigaben','Silbermedaillon','Onyx'],hoehle:['Edelsteinader','Kristallsplitter','Rohsilber'],turm:['Alchemistische Essenz','Runenfragment','Silberdraht'],stadt:['Schmuckstück','Handelsbarren','Münzbeutel']};

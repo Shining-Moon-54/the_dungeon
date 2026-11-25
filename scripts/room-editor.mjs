@@ -5,7 +5,7 @@ const M='the-dungeon';
 const L=(de,en)=>game.i18n?.lang==='de'?de:en;
 const names={
  '#':['Fels','Rock'],'.':['Boden','Floor'],n:['Tür Nord','North door'],o:['Tür Ost','East door'],s:['Tür Süd','South door'],w:['Tür West','West door'],
- g:['Gegner','Enemy'],G:['Elite','Elite'],K:['Schatz','Loot'],F:['Falle','Trap'],T:['Treppe','Stairs'],P:['Portal','Portal'],R:['Rast','Rest'],H:['Händler','Merchant'],E:['Eingang','Entrance']
+ g:['Gegner','Enemy'],G:['Elite','Elite'],K:['Schatz','Loot'],F:['Falle','Trap'],Q:['Rätsel','Puzzle'],T:['Treppe','Stairs'],P:['Portal','Portal'],R:['Rast','Rest'],H:['Händler','Merchant'],E:['Eingang','Entrance']
 };
 const nameOf=c=>L(...names[c]);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

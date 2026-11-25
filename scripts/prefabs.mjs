@@ -46,6 +46,7 @@ const MARKER = new Map([
   [ZEICHEN.TREPPE, "treppe"],
   [ZEICHEN.EINGANG, "eingang"],
   ["P", "portal"],
+  ["Q", "raetsel"],
   ["R", "rast"],
   ["H", "haendler"],
 ]);

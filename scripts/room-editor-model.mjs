@@ -1,6 +1,6 @@
 import {karteParsen,karteKanten} from './prefabs.mjs';
 import {validatePack,validatePacks,CARD_CATEGORIES} from './custom-decks.mjs';
-export const BRUSHES=Object.freeze(['#','.','n','o','s','w','g','G','K','F','T','P','R','H','E']);
+export const BRUSHES=Object.freeze(['#','.','n','o','s','w','g','G','K','F','Q','T','P','R','H','E']);
 const doors=new Set(['n','o','s','w']);
 function dimension(n){if(!Number.isInteger(n)||n<3||n>40)throw Error('Raster: 3–40 Felder');return n;}
 export function newGrid(w=8,h=8){

@@ -38,3 +38,5 @@
 .td-library-list button[aria-pressed=true]{outline:2px solid #c7a65b;background:#a47d3438}
 .td-library-detail{min-width:0}.td-library-detail img{width:100%;max-height:28vh;object-fit:contain;margin:.4rem 0}.td-library-detail img[hidden]{display:none}
 @media(max-width:650px){.td-library-layout{grid-template-columns:1fr}.td-library-list{max-height:20vh}}
+
+.td-editor-cells>button[data-cell="Q"]{background:#365b9ddd}
