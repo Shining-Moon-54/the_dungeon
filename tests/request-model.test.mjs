@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {parseRequest,nearMarker,resolveRequest} from '../scripts/request-model.mjs';
+const request={version:1,dungeonId:'d1',sceneId:'s1',level:1,tokens:['t1'],action:'transition',target:{placementId:'k1',index:0}};
+const context={sceneId:'s1',level:1,dungeonId:'d1',tokens:[{id:'t1',x:100,y:100},{id:'t2'}],owns:t=>t.id==='t1',markers:[{art:'treppe',placementId:'k1',index:0}],near:()=>true,savePoints:[{id:'sp1',gesperrt:false}],returnAllowed:true};
+test('requests: stable marker address and validated owned token',()=>{const r=resolveRequest(request,context);assert.equal(r.markerIndex,0);assert.equal(r.selected[0].id,'t1');});
+test('requests: reject duplicate tokens and malformed action',()=>{assert.throws(()=>parseRequest({...request,tokens:['t1','t1']}));assert.throws(()=>parseRequest({...request,action:'delete'}));});
+test('requests: reject foreign tokens, changed scene and distant marker',()=>{assert.throws(()=>resolveRequest({...request,tokens:['t2']},context));assert.throws(()=>resolveRequest(request,{...context,sceneId:'s2'}));assert.throws(()=>resolveRequest(request,{...context,near:()=>false}));});
+test('requests: locked or missing save points rejected',()=>{const r={...request,action:'teleport',target:'sp1'};assert.equal(resolveRequest(r,context).req.target,'sp1');assert.throws(()=>resolveRequest(r,{...context,savePoints:[{id:'sp1',gesperrt:true}]}));});
+test('requests: return target and token proximity',()=>{assert.throws(()=>resolveRequest({...request,action:'return'},{...context,returnAllowed:false}));assert.ok(nearMarker({x:100,y:100,width:1,height:1},{x:200,y:100}));assert.ok(!nearMarker({x:100,y:100},{x:500,y:500}));});

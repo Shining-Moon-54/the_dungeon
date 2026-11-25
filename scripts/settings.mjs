@@ -31,6 +31,7 @@ export function settingsRegistrieren() {
   if (typeof game === "undefined") return;
   const S = game.settings;
   S.register(MODUL_ID, "packs", {scope:"world",config:false,type:Array,default:[]});
+  S.register(MODUL_ID,"requestLedger",{scope:"world",config:false,type:Object,default:{}});
   S.register(MODUL_ID, SETTING_KEYS.DICHTE_GEGNER, {
     name: "Dichte: Gegner", hint: "Anteil der Räume mit Gegnern (0–100 %).",
     scope: "world", type: Number, range: { min: 0, max: 100, step: 5 }, default: 40,
