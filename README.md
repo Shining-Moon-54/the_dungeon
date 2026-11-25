@@ -1,113 +1,168 @@
 # The Dungeon
 
-Ein Foundry-VTT-14-Modul für **prozedurale Karten-Deck-Dungeons**: Höhlen, Katakomben, Türme und Städte, die sich Zug für Zug aus vorgefertigten Karten-Abschnitten aufbauen – digitaler Nachbau eines physischen Kartendecks.
+**Ein lebender Dungeon für Foundry Virtual Tabletop.**
 
-> **Status: 0.6.0-alpha.1 – Entwicklungsstand M3–M6, noch keine Freigabe.**
+Eine Taverne über einem geheimnisvollen Dungeon. Hinter jeder ungeöffneten Tür kann ein neuer Raum warten – und der Dungeon verändert sich, während die Abenteurer ihn erkunden. The Dungeon verbindet vorgefertigte Kartenabschnitte mit prozeduraler Generierung, mehreren Ebenen und D&D-5e-Spielinhalten. Die Spielleitung bestimmt, wie groß, gefährlich und wandelbar der Dungeon werden soll.
 
-## Konzept
+[![Foundry VTT](https://img.shields.io/badge/Foundry_VTT-v14-orange)](https://foundryvtt.com/)
+[![Version](https://img.shields.io/badge/version-0.6.0--alpha.1-blue)](https://github.com/Shining-Moon-54/the_dungeon/releases/tag/v0.6.0-alpha.1)
+[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/Shining-Moon-54/the_dungeon/blob/develop-0.6.0/LICENSE)
 
-- **Karten-Deck statt Live-Zeichnen**: Der Dungeon besteht aus Prefab-Karten (ASCII-Grid → SVG). Beim Auslösen (z. B. Tür öffnen) zieht der Generator die nächste Karte, rotiert sie passend und dockt sie **exakt an der geöffneten Tür** an. Pro Karte entsteht nur **1 Boden-Tile + Wand-/Tür-Segmente**.
-- **4 Dungeon-Modi** (Alpha): statisch, dynamisch wachsend (Standard), sich verändernd, chaotisch – Save Points & Rückweg bleiben stabil.
-- **Seedbar & reproduzierbar**: Gleicher Seed + gleiche Züge = identischer Dungeon; RNG-Zustand wird persistiert und fortgesetzt.
-- **D&D 5e/5.5e** (Alpha): CR-Skalierung nach DMG 2014/2024, Monster-Vorschläge aus Compendien, Loot-Tabellen, Fallen, 100+ deutsche Rätsel.
-- **KI optional** (geplant): NanoGPT, OpenRouter, Ollama, LM Studio oder beliebige OpenAI-kompatible Endpunkte – niemals Voraussetzung.
+[Installation](#installation) · [Funktionen](#funktionen) · [Dungeon-Modi](#dungeon-modi) · [Erste Schritte](#erste-schritte) · [Roadmap](#roadmap) · [Entwicklung](#entwicklung)
 
-## Features (Stand M1+M2)
+> [!IMPORTANT]
+> **0.6.0-alpha.1 ist eine Entwicklungs-Alpha.** Der GitHub-Release ist veröffentlicht, die erste vollständige spielbare Testfreigabe (M6) ist aber noch nicht erreicht. Installation ausschließlich in einer gesicherten, separaten Testwelt. Die Integration in einer laufenden Foundry-v14-Instanz wurde noch nicht vollständig geprüft.
 
-### M1 – Fundament & Feinschliff
-- Seedbarer Generator (sfc32) mit Persistenz (`getState`/`setState`)
-- 30 Karten in 4 Themen (Katakomben, Höhle, Turm, Stadt)
-- **Karten-Rotation** um 90°/180°/270° – jede Karte dockt an jede Türseite
-- **Alternativkarten**: passt die erste Ziehung nicht (Kollision/Limit), werden alle Kandidaten durchprobiert
-- Strikte **Limits**: Kartenzahl je Ebene, maximale Kartenausdehnung (vor der Platzierung geprüft)
-- **Nicht erweiterbare Ausgänge** werden sinnvoll abgeschlossen (Tür → geschlossene Wand, kein Loch in der Karte)
-- **Native Foundry-Walls** (Türen = Wall mit `move: DOOR`), **keine doppelten Segmente** (globales Raster statt Wand-Salat je Karte)
-- **Inkrementelles Erweitern**: Sync-Diff legt nur neue Segmente/Tiles an; Token, Fog of War und **Türzustände bleiben erhalten**; Szene wächst in alle vier Richtungen
-- **3 Auslöser-Modi**: vollautomatisch beim Türöffnen, GM-Bestätigungs-Dialog, manuell – plus Sperre gegen parallele Türöffnungen mehrerer Spieler (Socket)
-- **Dungeon-Zustand inkl. RNG** in Szenen-Flags persistiert; jede Dungeon-Id eindeutig
+## Installation
 
-### M2 – Ebenen, Treppen, Save Points
-- **Mehrere Ebenen** (pro Ebene eine Szene), Ebenen-Limit konfigurierbar
-- **Treppen & Portale in beide Richtungen**: beim ersten Benutzen wird die Zielebene erzeugt **inkl. Rückweg-Karte**; zweite Benutzung bleibt dieselbe Verbindung (idempotent)
-- **Sanktuen** (sichere Zwischenebenen): garantiert gegnerfrei, mit Rastplatz, Händler und Teleport-Portal
-- **Save Points**: Registrierung (manuell oder automatisch beim Sanktum), **Sperrstatus pro Punkt für Spieler** (GM sieht alle), Teleport-Ziel-Auflösung
-- **Rückkehr zur Taverne/Oberwelt**: konfigurierbares Ziel (Szenen-Id + Koordinaten)
-- Persistenz v2: Verbindungen, Save Points, Sanktue, Oberwelt, Auslöser-Modus
+**Voraussetzungen:** Foundry VTT v14 und eine D&D5e-Welt für die regelabhängigen Funktionen. Keine kostenpflichtigen Zusatzmodule, KI-Dienste oder npm-Abhängigkeiten für den Modulbetrieb erforderlich. Für automatische Monsterbegegnungen ist ein geeignetes Monsterkompendium erforderlich.
 
-## Projektstruktur
+### Über Foundry VTT (empfohlen)
 
-```
-scripts/
-  rng.mjs          # seedbarer Zufallsgenerator + Persistenz (pure)
-  prefabs.mjs      # Karten-Deck: Grids, Validierung, Kanten, Rotation (pure)
-  generator.mjs    # Graph-Kern: Ziehen, Andocken, Kollision, Limits (pure)
-  scene-builder.mjs# Raster → native Walls/Doors/Tiles, Sync-Diff, Persistenz
-  levels.mjs       # Ebenen, Treppen, Portale, Verbindungen (pure)
-  sanctuary.mjs    # Sanktuen & Save Points (pure)
-  triggers.mjs     # Tür-Auslöser (automatisch/bestätigung/manuell)
-  persistenz.mjs   # Zustand v2 (M2-Felder)
-  settings.mjs     # Modul-Settings
-  main.mjs         # Hooks, Socket, game.theDungeon-API
-tools/
-  generate-prefab-svgs.mjs   # npm run svg
-  render-dungeon.mjs         # npm run render – visuelle Kontrolle
-tests/                        # 81 aktive Tests + Foundry-IT (s. tests/README.md)
-assets/prefabs/<thema>/      # Karten-Grafiken (SVG)
-```
+1. Im Foundry-Setup **Add-on Modules → Install Module** öffnen.
+2. Folgende Manifest-URL einfügen:
 
-## Entwicklung
-
-```bash
-npm test        # 81 pure Tests (inkl. 1.040-Dungeon-Massenprüfung + Performance)
-npm run svg      # Karten-Grafiken neu generieren
-npm run render   # Dungeon-Übersicht rendern: node tools/render-dungeon.mjs <thema> <seed> <karten> <out.svg>
-```
-
-Test-Details (Massen-Prüfung, Foundry-v14-Integrationstests,
-Screenshots, Performance-Richtwerte): [tests/README.md](tests/README.md)
-
-## Foundry-Verwendung (GM)
-
-1. Modul installieren/aktivieren (Foundry 14)
-2. Konsole/Makro: `await game.theDungeon` – API wird beim ersten
-   `dungeonErstellen` bereitgestellt:
-   ```js
-   const { dungeon, scene } = await dungeonErstellen({
-     thema: "katakombe",          // katakombe | hoehle | turm | stadt
-     ausloeser: "bestaetigung",   // automatisch | bestaetigung | manuell
-     statisch: false,             // true = Ebene vorab komplett generieren
-     oberwelt: { szenenId: "…" }, // Rückkehr-Ziel (Taverne)
-   });
+   ```text
+   https://github.com/Shining-Moon-54/the_dungeon/releases/download/v0.6.0-alpha.1/module.json
    ```
-3. Spieler öffnen Türen → je Auslöser-Modus wird erweitert
-4. Treppen benutzen → nächste Ebene entsteht lazily inkl. Rückweg
-5. `game.theDungeon.sanktumErstellen(id)` – Sanktum anlegen
-6. Save Points: `game.theDungeon.savePoints(id)` / `savePointSperren(id, spId, true)`
+
+3. Auf **Install** klicken.
+4. Eine separate D&D5e-Testwelt starten und **The Dungeon** unter **Manage Modules** aktivieren.
+
+### Manuelle Installation
+
+1. [Installationspaket herunterladen](https://github.com/Shining-Moon-54/the_dungeon/releases/download/v0.6.0-alpha.1/the-dungeon.zip).
+2. ZIP entpacken, sodass `Data/modules/the-dungeon/module.json` direkt vorhanden ist.
+3. Foundry neu starten und das Modul in der Testwelt aktivieren.
+
+[GitHub-Release v0.6.0-alpha.1](https://github.com/Shining-Moon-54/the_dungeon/releases/tag/v0.6.0-alpha.1) · [Alternatives Quellarchiv](https://github.com/Shining-Moon-54/the_dungeon/archive/refs/heads/install-0.6.0-alpha.1.zip)
+
+Falls das Release-Manifest nicht erreichbar ist, steht das [Manifest des versionierten Installationsbranches](https://raw.githubusercontent.com/Shining-Moon-54/the_dungeon/install-0.6.0-alpha.1/module.json) zur Verfügung. Dieser alternative Installationsweg verwendet das GitHub-Quellarchiv und ist nicht in einer echten Foundry-Instanz verifiziert. Alpha-Versionen haben derzeit jeweils eine eigene Manifest-URL.
+
+## Funktionen
+
+### Prozedurale Dungeon-Generierung
+
+- 30 vorgefertigte Kartenabschnitte mit vier Rotationen (120 SVG-Dateien).
+- Vier Umgebungsthemen: **Katakomben, Höhlen, Türme und Städte**.
+- Neue Karten werden beim Öffnen einer Tür passend rotiert und an der tatsächlich geöffneten Tür angedockt.
+- Einstellbare maximale Größe, Anzahl der Karten und Ebenen; Kollisionsprüfung und alternative Karten bei Platzmangel.
+- Automatische, bestätigungspflichtige oder manuelle Erweiterung.
+- Seed-basierte Generierung und Speicherung des Dungeon-Zustands inklusive Zufallsgenerator.
+- Inkrementelle Aktualisierung nativer Foundry-Tiles, Wände und Türen statt vollständiger Neuerstellung bei jeder Erweiterung.
+
+### Ebenen, Treppen und Save Points
+
+- Mehrere Ebenen mit eigenen Foundry-Szenen und konfigurierbarem Ebenenlimit.
+- Treppen und Portale mit beidseitigen Verbindungen und Rückwegen.
+- Sichere Zwischenebenen (Sanktuen) als Rastbereiche.
+- Registrierbare und sperrbare Save Points als Teleportziele.
+- Konfigurierbare Rückkehr zur Taverne oder Oberwelt.
+
+### D&D 5e: Begegnungen und Rauminhalte (Alpha)
+
+- Unterschiedliche XP-Budgets für die Regelstände 2014 und 2024 sowie CR-Obergrenzen.
+- Monstersuche in Kompendien und Platzierung verdeckter Tokens.
+- Schätze, Fallen und Rätsel als GM-Journalinhalte.
+- 108 Rätsel-Einträge: 12 einzelne Rätsel und 96 Varianten dreier Logikmuster.
+
+Schätze, Fallen und Rätsel werden derzeit von der Spielleitung ausgespielt. Automatische Belohnungsvergabe und Antwortprüfung sind noch nicht implementiert.
+
+### Kartenpakete und Bedienung (Alpha)
+
+- Eigene Kartenpakete per JSON mit Bildpfad und ASCII-Raster.
+- Validierung und Speicherung importierter Vorlagen.
+- GM-Dashboard für Erstellung, Verwaltung, Erweiterung, Navigation, Schutz und Reset.
+- Spielerpanel für Übergangsanfragen an die Spielleitung.
+
+Ein grafischer Raumeditor und autonome Spielerübergänge sind noch nicht verfügbar.
+
+## Dungeon-Modi
+
+| Modus | Konzept |
+| --- | --- |
+| Statisch | Eine Ebene wird vorab erzeugt und bleibt grundsätzlich unverändert. |
+| Dynamisch wachsend | Neue Räume entstehen beim Erkunden; Standardmodus. |
+| Sich verändernd | Der Dungeon kann geeignete Bereiche zeitgesteuert umbauen. |
+| Chaotisch | Stärker wandelbare Dungeon-Variante; die Grundmechanik ist vorhanden, der Modus wird weiter ausgebaut. |
+
+Die Alpha schützt besuchte Räume, Übergänge und Räume mit Tokens vor dem automatischen Umbau. Umbauten erfolgen derzeit nur in geeigneten ungeschützten Blatträumen auf Ebenen, die nicht von Spielern betrachtet werden. Reset mit Archivierung und Rückgängig-Funktion für geeignete Erweiterungen sind vorhanden.
+
+## Erste Schritte
+
+1. Als GM die Szene der Taverne oder Oberwelt öffnen.
+2. Über die Token-Werkzeuge das Dungeon-Symbol öffnen. Alternativ die Browser-Konsole verwenden:
+
+   ```js
+   game.theDungeon.dashboard();
+   ```
+
+3. Einen Dungeon anlegen. Thema, Modus, Grenzen, Gruppenzusammensetzung, Regelstand und Rückkehrziel festlegen.
+4. Generierte Dungeon-Szene überprüfen.
+5. Spieler-Tokens in der Oberwelt auswählen und im Dashboard **Betreten** verwenden.
+6. Türen öffnen und den Dungeon erkunden. Die Spielleitung steuert Ebenenwechsel, Portale und Save Points über das Dashboard.
+
+Spieler können Übergänge anfragen; der GM führt den Transfer aus. Mehrere Tokens können aktuell dieselbe Zielposition erhalten und müssen gegebenenfalls verteilt werden.
 
 ## Roadmap
 
-- **M1** ✔ Fundament + Feinschliff (Rotation, Alternativkarten, Abschluss, inkrementeller Sync, Auslöser-Modi)
-- **M2** ✔ Ebenen, Treppen/Portale beidseitig, Sanktuen, Save Points, Rückkehr
-- **M3** Raumvorlagen-Editor, Themes als JSON, Asset-Kategorien, eigene GM-Asset-Pakete
-- **M4** CR-Mathe (2014/2024), Monster-Vorschläge, Loot-Tabellen, Fallen, Rätsel-Bibliothek, Auto-Befüllung
-- **M5** KI-Profile, Kompendium-Persistenz, Dashboard, Wandering Monsters, Export/Release
+| Meilenstein | Inhalt | Status |
+| --- | --- | --- |
+| M1 | Generator, Kartenrotation, Andocken, Limits und Persistenz | Implementiert |
+| M2 | Ebenen, Treppen, Portale, Sanktuen und Save Points | Implementiert |
+| M3 | Eigene Kartenpakete, grafischer Raumeditor und Asset-Katalog | Teilweise implementiert |
+| M4 | CR-/XP-Skalierung, Monster, Loot, Fallen und Rätsel | Grundfunktionen implementiert |
+| M5 | Vier Dungeon-Modi, Umbau, Reset und weitere Dungeon-Ereignisse | Grundfunktionen implementiert |
+| M6 | Vollständige GM-/Spieleroberfläche und spielbarer Ablauf | In Entwicklung |
+| M7 | Optionale KI-Anbindung, z. B. OpenAI-kompatible Endpunkte | Geplant |
+| M8 | Integrationstests, Performance-Optimierung und Release | Geplant |
 
-## License
+**Nächstes Ziel:** M6 vollständig abschließen und den ersten zusammenhängenden Spieltest in Foundry ermöglichen. KI bleibt optional und ist keine Voraussetzung für die Nutzung des Moduls.
 
-MIT – siehe [LICENSE](LICENSE).
+## Entwicklung
 
-## GitHub-Installation (Alpha)
+Der aktuelle Quellcode liegt im [Entwicklungsbranch `develop-0.6.0`](https://github.com/Shining-Moon-54/the_dungeon/tree/develop-0.6.0). Versionierte Installationsbranches und GitHub-Releases sichern veröffentlichte Alpha-Stände.
 
-**Entwicklungsstand – nur in einer separaten Testwelt mit Foundry VTT 14 verwenden.**
+```bash
+git clone --branch develop-0.6.0 https://github.com/Shining-Moon-54/the_dungeon.git
+cd the_dungeon
+npm run svg
+npm run lint
+npm test
+```
 
-Im Foundry-Setup unter **Add-on Modules → Install Module** diese Manifest-URL einfügen:
+### Projektstruktur
 
-`https://raw.githubusercontent.com/Shining-Moon-54/the_dungeon/install-0.6.0-alpha.1/module.json`
+| Ordner / Datei | Aufgabe |
+| --- | --- |
+| `scripts/` | Generator, Karten, Persistenz, Foundry-Integration, Begegnungen und Oberfläche |
+| `assets/prefabs/` | Karten-SVGs und Rotationsvarianten |
+| `styles/` | Benutzeroberfläche |
+| `lang/` | Sprachdateien |
+| `tools/` | Kartengenerierung und Rendering |
+| `tests/` | Logik-, visuelle und Foundry-Integrationstests |
+| `module.json` | Foundry-Modulmanifest |
 
-Der versionierte Installationsbranch enthält den vollständigen Quellcode und sämtliche Karten. Das Manifest verweist auf das zugehörige GitHub-Quellarchiv; dieser Installationsweg benötigt keinen erfolgreichen Actions-Lauf. Der Branch wird für diese Version nicht weiterentwickelt. Alternativ kann das [Quellarchiv](https://github.com/Shining-Moon-54/the_dungeon/archive/refs/heads/install-0.6.0-alpha.1.zip) heruntergeladen und sein Inhalt nach `Data/modules/the-dungeon/` kopiert werden, sodass `module.json` direkt dort liegt.
+GitHub Actions führt die Syntaxprüfung und automatisierten Tests aus und erstellt das Installationspaket für versionierte Alpha-Releases. Bestehende Release-Tags werden nicht überschrieben.
 
-Sobald der GitHub-Actions-Prerelease veröffentlicht wurde, steht zusätzlich das kompakte Installationspaket mit einem separaten [Release-Manifest](https://github.com/Shining-Moon-54/the_dungeon/releases/download/v0.6.0-alpha.1/module.json) zur Verfügung. Siehe [ALPHA-STATUS.md](ALPHA-STATUS.md) für bekannte Einschränkungen. Zukünftige Alpha-Versionen verwenden einen neuen Manifest-Link.
+### Qualität und bekannte Einschränkungen
 
-### Build und Release
+- Letzter dokumentierter lokaler Teststand: **93 bestanden, 0 fehlgeschlagen, 3 Foundry-Integrationstests übersprungen**.
+- Die [GitHub-Actions-Builds](https://github.com/Shining-Moon-54/the_dungeon/actions) der veröffentlichten Alpha sind erfolgreich abgeschlossen.
+- Ein echter Foundry-v14-Spieltest und Leistungstest auf dem Raspberry Pi 5 stehen noch aus.
+- Die Oberfläche ist noch nicht vollständig lokalisiert; deutsche Rauminhalte und teilweise englische Oberflächentexte sind vorhanden.
+- Details: [Alpha-Status](https://github.com/Shining-Moon-54/the_dungeon/blob/develop-0.6.0/ALPHA-STATUS.md) und [Testdokumentation](https://github.com/Shining-Moon-54/the_dungeon/blob/develop-0.6.0/tests/README.md).
 
-Neue Versionen werden über einen neuen `install-<version>`-Branch veröffentlicht. GitHub Actions generiert die Karten, prüft JavaScript-Syntax und führt die Tests aus. Der Workflow erzeugt ein Laufzeit-ZIP mit `module.json` auf oberster Ebene und veröffentlicht die Manifestdatei und das ZIP als Prerelease. Bestehende Release-Tags werden nicht überschrieben.
+## Fehler melden und Ideen einreichen
+
+Bitte nutze [GitHub Issues](https://github.com/Shining-Moon-54/the_dungeon/issues). Bei Fehlern helfen Foundry-Version, D&D5e-Systemversion, Modulversion, Dungeon-Seed, Schritte zur Reproduktion und relevante Konsolenausgaben.
+
+## English summary
+
+The Dungeon is an in-development Foundry VTT v14 module for procedural, multi-level dungeons assembled from reusable map prefabs. It includes door-triggered expansion, four dungeon modes, save points, configurable D&D 5e encounter budgets, room contents and an initial GM dashboard. The current release is an early development alpha, not yet ready for live campaigns.
+
+## Lizenz
+
+MIT – siehe [LICENSE](https://github.com/Shining-Moon-54/the_dungeon/blob/develop-0.6.0/LICENSE).
+
+Entwickelt von **Shining-Moon-54**. Ein unabhängiges Community-Projekt für Foundry Virtual Tabletop.
