@@ -1,6 +1,6 @@
 import {KARTEN} from './prefabs.mjs';
 import {validatePacks} from './custom-decks.mjs';
-const essential=new Set(['eingang','treppe','sanktum']);
+const essential=new Set(['eingang','treppe','sanktum','ankunft']);
 const playable=new Set(['raum','gang','kreuzung','sackgasse']);
 /** Freeze the available card IDs on creation; adding a pack does not alter an existing seed. */
 export function selectDeck(theme,packs,ids=[],includeBuiltin=true){

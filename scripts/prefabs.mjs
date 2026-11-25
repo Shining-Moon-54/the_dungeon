@@ -76,6 +76,7 @@ export class KartenFehler extends Error {
  */
 export const KARTEN = {
   katakombe: [
+    {"id":"k-ankunft","name":"Treppenhalle","kategorie":"ankunft","grid":["###n###","#.....#","#.....#","#..T..#","#.....#","#.....#","###s###"]},
     {
       id: "k-eingang", name: "Eingangskammer", kategorie: "eingang",
       grid: [
@@ -197,6 +198,7 @@ export const KARTEN = {
   ],
 
   hoehle: [
+    {"id":"h-ankunft","name":"Ankunftsgrotte","kategorie":"ankunft","grid":["###n###","#.....#","#.....#","#..T..#","#.....#","#.....#","###s###"]},
     {
       id: "h-eingang", name: "Höhlenmund", kategorie: "eingang",
       grid: [
@@ -282,6 +284,7 @@ export const KARTEN = {
   ],
 
   turm: [
+    {"id":"t-ankunft","name":"Treppenpodest","kategorie":"ankunft","grid":["###n###","#.....#","#.....#","#..T..#","#.....#","#.....#","###s###"]},
     {
       id: "t-eingang", name: "Turmeingang", kategorie: "eingang",
       grid: [
@@ -359,6 +362,7 @@ export const KARTEN = {
   ],
 
   stadt: [
+    {"id":"s-ankunft","name":"Kellerzugang","kategorie":"ankunft","grid":["###n###","#.....#","#.....#","#..T..#","#.....#","#.....#","###s###"]},
     {
       id: "s-eingang", name: "Stadttor", kategorie: "eingang",
       grid: [

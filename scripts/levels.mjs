@@ -179,7 +179,10 @@ export function verbindungOeffnen(dungeon, ebene, marker, rng) {
   let ziel = ebeneNr(dungeon, zielNr);
   let neu = false;
   if (!ziel) {
-    ziel = ebeneAnlegen(dungeon, zielNr, rng, { typ: "normal" });
+    // A dedicated arrival room has its return marker and two free exits.
+    // Legacy allowlists can still resolve their original entrance and stair deck.
+    const hasArrival=ebeneDeck(ebene).some(c=>c.kategorie==='ankunft'&&c.breite<=dungeon.limits.maxAusdehnung.breite&&c.hoehe<=dungeon.limits.maxAusdehnung.hoehe);
+    ziel = ebeneAnlegen(dungeon, zielNr, rng, { typ: "normal", startKategorie:hasArrival?'ankunft':'eingang' });
     neu = true;
   }
 
@@ -192,6 +195,7 @@ export function verbindungOeffnen(dungeon, ebene, marker, rng) {
     gegen = _rueckwegKartePlatzieren(dungeon, ziel, rng, art);
   }
   if (!gegen) {
+    if(neu)dungeon.ebenen.splice(dungeon.ebenen.indexOf(ziel),1);
     throw new GeneratorFehler(`Zielebene ${zielNr} ohne freien ${art}-Marker`);
   }
 

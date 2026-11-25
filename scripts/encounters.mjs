@@ -40,7 +40,7 @@ export async function monsterCatalog(){
 export function roomContent(dungeon,ebene,placement,catalog=[]){
  const rng=new Rng(`${dungeon.seed}:${ebene.nr}:${placement.id}:${placement.karte}`),conf=dungeon.config??{};
  const d=conf.dichten??{gegner:.4,fallen:.2,raetsel:.15,schaetze:.3};
- const safe=ebene.typ==='sanctuary'||['eingang','sanktum','treppe','gang','sackgasse'].includes(placement.kategorie);
+ const safe=ebene.typ==='sanctuary'||['eingang','ankunft','sanktum','treppe','gang','sackgasse'].includes(placement.kategorie);
  const result={};if(safe)return result;
  const k=kartePlacement(ebene,placement),floor=k.zellen.flatMap((row,y)=>row.flatMap((z,x)=>z.boden&&!k.tueren.some(t=>t.cx===x&&t.cy===y)&&!k.marker.some(m=>m.cx===x&&m.cy===y&&['treppe','portal','eingang'].includes(m.art))?[{x:placement.x+x,y:placement.y+y}]:[]));
  const cells=rng.shuffle(floor);const take=()=>cells.shift();
