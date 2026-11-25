@@ -11,6 +11,7 @@ import {installPacks,savePack} from './custom-decks.mjs';
 import {populateLevel} from './populate.mjs';
 import {modeOf,grow,leafCandidates,removeLeaf} from './modes.mjs';
 import {connectedCells,nearCells,planArrival} from './arrival.mjs';
+import {applyBehavior} from './live-config.mjs';
 import {IntervalGate,patrolMinutes} from './timing.mjs';
 import {patrolStep} from './patrol-foundry.mjs';
 import {openDashboard,openPlayerPanel} from './dashboard.mjs';
@@ -87,7 +88,7 @@ async function teleport(id,sp,tokens=selectedTokens(),users=null){const {dungeon
 async function enter(id){const {dungeon:d}=get(id);const e=level(d,1),p=markerDerEbene(e,'eingang')[0];if(!p)throw Error('Eingang fehlt');await moveTokens(selectedTokens(),sceneFor(d,e),markerPixel(d,p),{d,e,marker:p});}
 async function leave(id){const {dungeon:d}=get(id);const t=rueckkehrZiel(d);if(!t)throw Error('Kein Oberweltziel eingerichtet.');await moveTokens(selectedTokens(),game.scenes.get(t.szenenId),{x:t.x,y:t.y});if(d.config?.reset)await reset(id);}
 async function reset(id){return queue(id,async()=>{const {dungeon:d}=get(id);const scenes=Object.values(d.szenenIds).map(id=>game.scenes.get(id)).filter(Boolean);if(scenes.some(s=>[...s.tokens].some(playerToken)||!noPlayersViewing(s)))throw Error('Reset gesperrt: Spieler befinden sich noch im Dungeon.');const c=d.config??{};const fresh=await dungeonErstellen({name:d.name,thema:d.thema,seed:`${d.seed}:reset:${(d.resetCount??0)+1}`,modus:c.modus,ausloeser:d.ausloeser,oberwelt:d.oberwelt,maxKartenProEbene:d.limits.maxKartenProEbene,maxKartenBreite:d.limits.maxAusdehnung.breite,maxKartenHoehe:d.limits.maxAusdehnung.hoehe,maxEbenen:d.limits.maxEbenen,levels:c.levels,rules:c.rules,difficulty:c.difficulty,maxCR:c.maxCR,levelStep:c.levelStep,autoPopulate:c.autoPopulate,reset:c.reset,interval:c.interval,patrolMinutes:c.patrolMinutes,bossEnabled:c.bossEnabled,packIds:c.packIds,includeBuiltin:c.includeBuiltin,...Object.fromEntries(Object.entries(c.dichten??{}).map(([k,v])=>['dichte'+k[0].toUpperCase()+k.slice(1),v*100]))});fresh.dungeon.resetCount=(d.resetCount??0)+1;await zustandSpeichern(fresh.dungeon,fresh.rng);for(const s of scenes)await s.setFlag(M,'archived',true);aktiv.delete(id);return fresh;});}
-const api={patrol:(id,n)=>queue(id,async()=>{const {dungeon:d,rng}=get(id),e=level(d,n),scene=sceneFor(d,e);if(!scene)throw Error('Szene fehlt');const count=await patrolStep(d,e,scene,rng);await zustandSpeichern(d,rng);return count;}),async handleRequest(c){gm();const {req,selected,u,markerIndex}=c;const users=[u.id];if(req.action==='transition')return transition(req.dungeonId,req.level,markerIndex,selected,users);if(req.action==='teleport')return teleport(req.dungeonId,req.target,selected,users);if(req.action==='return'){const d=get(req.dungeonId).dungeon,t=rueckkehrZiel(d);if(!t)throw Error('Kein Rückkehrziel');return moveTokens(selected,game.scenes.get(t.szenenId),{x:t.x,y:t.y},null,users);}throw Error('Ungültige Anfrage');},aktiv,dungeonErstellen,dungeonErweitern:expand,verbindungBenutzen:transition,sanktumErstellen:sanctuary,teleport,enter,leave,reset,reshape,undo,savePack,
+const api={configure:(id,input)=>queue(id,async()=>{const {dungeon:d,rng}=get(id);const before=snap({dungeon:d,rng});applyBehavior(d,input);try{await zustandSpeichern(d,rng);}catch(err){aktiv.set(id,zustandDeserialisieren(before));throw err;}history.delete(id);return d.config;}),patrol:(id,n)=>queue(id,async()=>{const {dungeon:d,rng}=get(id),e=level(d,n),scene=sceneFor(d,e);if(!scene)throw Error('Szene fehlt');const count=await patrolStep(d,e,scene,rng);await zustandSpeichern(d,rng);return count;}),async handleRequest(c){gm();const {req,selected,u,markerIndex}=c;const users=[u.id];if(req.action==='transition')return transition(req.dungeonId,req.level,markerIndex,selected,users);if(req.action==='teleport')return teleport(req.dungeonId,req.target,selected,users);if(req.action==='return'){const d=get(req.dungeonId).dungeon,t=rueckkehrZiel(d);if(!t)throw Error('Kein Rückkehrziel');return moveTokens(selected,game.scenes.get(t.szenenId),{x:t.x,y:t.y},null,users);}throw Error('Ungültige Anfrage');},aktiv,dungeonErstellen,dungeonErweitern:expand,verbindungBenutzen:transition,sanktumErstellen:sanctuary,teleport,enter,leave,reset,reshape,undo,savePack,
  savePoints:id=>verfuegbareSavePoints(get(id).dungeon,true),
  savePointSperren:(id,sp,locked)=>queue(id,async()=>{const {dungeon:d,rng}=get(id);savePointSperren(d,sp,locked);await zustandSpeichern(d,rng);}),
  savePointAdd:(id,n,i,name)=>queue(id,async()=>{const {dungeon:d,rng}=get(id),e=level(d,n),m=markerDerEbene(e)[Number(i)];if(!m)throw Error('Marker fehlt');savePointRegistrieren(d,e,m,name);await zustandSpeichern(d,rng);}),
@@ -120,4 +121,17 @@ Hooks.once('ready',()=>{if(!game.user.isGM)return;setInterval(()=>{
  }
  patrolGate.prune(keys);
 },30000);});
-const ticked=new Map();Hooks.once('ready',()=>{if(!game.user.isGM)return;setInterval(()=>{if(!primary())return;for(const [id,{dungeon:d}] of aktiv){const mins=d.config?.interval;if(!mins||!['veraendernd','chaotisch'].includes(modeOf(d)))continue;if(!ticked.has(id)){ticked.set(id,Date.now());continue;}if(Date.now()-ticked.get(id)<mins*60000)continue;ticked.set(id,Date.now());for(const e of d.ebenen){const s=sceneFor(d,e);if(s&&noPlayersViewing(s))reshape(id,e.nr).catch(console.warn);}}},30000);});
+// Reshuffle uses the same non-overlapping gate. Never enqueue a second operation for a floor.
+const reshapeGate=new IntervalGate();
+Hooks.once('ready',()=>{if(!game.user.isGM)return;setInterval(()=>{
+ if(!primary())return;
+ const keys=new Set(),now=Date.now();
+ for(const [id,{dungeon:d}] of aktiv)for(const e of d.ebenen){
+  const k=id+':'+e.nr,s=sceneFor(d,e);keys.add(k);
+  const minutes=['veraendernd','chaotisch'].includes(modeOf(d))?d.config?.interval??0:0;
+  if(!reshapeGate.due(k,minutes,now))continue;
+  if(!s||!noPlayersViewing(s)||e.typ==='sanctuary'||queues.has(id)){reshapeGate.finish(k);continue;}
+  reshape(id,e.nr).catch(console.warn).finally(()=>reshapeGate.finish(k));
+ }
+ reshapeGate.prune(keys);
+},30000);});
