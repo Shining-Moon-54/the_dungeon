@@ -313,7 +313,8 @@ export function zustandSerialisieren(dungeon, rng) {
     ebenen: dungeon.ebenen.map((e) => ({
       nr: e.nr,
       seed: e.seed,
-      thema: dungeon.thema,
+      thema: e.thema ?? dungeon.thema,
+      ...(Array.isArray(e.deckIds)?{deckIds:[...e.deckIds]}:{}),
       zugNummer: e.zugNummer,
       naechstePlacementId: e.naechstePlacementId,
       karten: [...e.karten.values()],

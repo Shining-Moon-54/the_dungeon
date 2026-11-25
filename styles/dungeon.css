@@ -30,3 +30,11 @@
 .td-editor-cells>button[data-cell="E"],.td-editor-cells>button[data-cell="R"],.td-editor-cells>button[data-cell="H"]{background:#34786bdd}
 .td-editor-cells>button:focus-visible{z-index:1;outline:2px solid #fff}
 .td-invalid{color:var(--color-level-error,#c44);font-weight:600}
+
+.td-pack-select{max-height:10rem;overflow:auto;border:1px solid #7775;border-radius:5px;padding:.3rem}
+.td-library-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:.7rem;margin:.6rem 0}
+.td-library-list{max-height:40vh;overflow:auto;display:flex;flex-direction:column;gap:.25rem}
+.td-library-list button{text-align:left;flex:none;white-space:normal;height:auto;padding:.4rem}
+.td-library-list button[aria-pressed=true]{outline:2px solid #c7a65b;background:#a47d3438}
+.td-library-detail{min-width:0}.td-library-detail img{width:100%;max-height:28vh;object-fit:contain;margin:.4rem 0}.td-library-detail img[hidden]{display:none}
+@media(max-width:650px){.td-library-layout{grid-template-columns:1fr}.td-library-list{max-height:20vh}}

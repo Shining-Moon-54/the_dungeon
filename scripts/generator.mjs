@@ -68,6 +68,16 @@ function deck(thema) {
 /** Karte (unrotiert) aus dem Cache holen. */
 export function deckCacheLeeren() { _deckCache.clear(); }
 
+/** A selected deck is a persisted allowlist; undefined denotes a legacy dungeon. */
+export function ebeneDeck(ebene) {
+  const all=deck(themaDerEbene(ebene));
+  if(!Array.isArray(ebene.deckIds)) return [...all.values()];
+  return ebene.deckIds.map(id=>{
+    const card=all.get(id);
+    if(!card)throw new GeneratorFehler("gespeicherte Karte fehlt: "+id);
+    return card;
+  });
+}
 export function karteHolen(thema, kartenId) {
   return deck(thema).get(kartenId) || null;
 }
@@ -323,7 +333,7 @@ export function kandidaten(ebene, limits) {
   const anteil = ebene.karten.size / limits.maxKartenProEbene;
   const treppenFaellig = anteil >= TREPPE_AB_ANTEIL && ebene.nr < limits.maxEbenen;
   const liste = [];
-  for (const k of deck(themaDerEbene(ebene)).values()) {
+  for (const k of ebeneDeck(ebene)) {
     const gewicht = KATEGORIE_GEWICHTE[k.kategorie] ?? 0;
     if (k.kategorie === "treppe") {
       if (!treppenFaellig) continue;
@@ -451,15 +461,16 @@ export function rngZustand(ebene) {
  * Dungeon anlegen (nur Daten): Ebene 1 mit (rotierter) Startkarte.
  * @returns {object} dungeon { id, thema, seed, limits, ebenen }
  */
-export function dungeonAnlegen(thema, seed, limits = DEFAULT_LIMITS) {
+export function dungeonAnlegen(thema, seed, limits = DEFAULT_LIMITS, deckIds = undefined) {
   if (!Object.prototype.hasOwnProperty.call(THEMEN, thema)) {
     throw new GeneratorFehler(`unbekanntes Thema '${thema}'`);
   }
   const id = dungeonId();
   const ebene = neueEbene(1, seed);
   ebene.thema = thema;
+  if(Array.isArray(deckIds)) ebene.deckIds=[...deckIds];
   const rng = createRng(seed);
-  const startKarte = [...deck(thema).values()].find(
+  const startKarte = ebeneDeck(ebene).find(
     (k) => k.kategorie === "eingang"
   );
   if (!startKarte) {

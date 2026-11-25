@@ -1,0 +1,15 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {selectDeck,catalogRows} from '../scripts/deck-selection.mjs';
+import {installPacks} from '../scripts/custom-decks.mjs';
+import {dungeonAnlegen,kandidaten,ebeneDeck} from '../scripts/generator.mjs';
+import {ebeneAnlegen} from '../scripts/levels.mjs';
+import {zustandSerialisieren,zustandDeserialisieren} from '../scripts/persistenz.mjs';
+import {Rng} from '../scripts/rng.mjs';
+const make=(id,thema='katakombe')=>({id,thema,cards:[{id:'room',name:'Test room',kategorie:'raum',asset:'worlds/test/map.webp',grid:['##n##','#...#','w...o','#...#','##s##']}]});
+const a=make('a'),b=make('b'),other=make('other','hoehle');
+test('deck: built-in only by default; selected custom packs isolated',()=>{try{installPacks([a,b,other]);const standard=selectDeck('katakombe',[a,b,other]);assert.ok(!standard.some(id=>id.startsWith('custom-')));const ids=selectDeck('katakombe',[a,b,other],['a'],false);assert.ok(ids.includes('custom-a-room'));assert.ok(!ids.includes('custom-b-room'));const d=dungeonAnlegen('katakombe','selected',undefined,ids);assert.ok(kandidaten(d.ebenen[0],d.limits).every(c=>c.karte.id==='custom-a-room'));}finally{installPacks([]);}});
+test('deck: validates unknown and cross-theme packs and empty custom-only deck',()=>{assert.throws(()=>selectDeck('katakombe',[a],['missing']));assert.throws(()=>selectDeck('katakombe',[other],['other']));assert.throws(()=>selectDeck('katakombe',[a],[],false));assert.throws(()=>selectDeck('katakombe',[a],['a','a']));});
+test('deck: new packs never change an existing allowlist; persists across save and new floors',()=>{try{installPacks([a]);const ids=selectDeck('katakombe',[a],['a']);const d=dungeonAnlegen('katakombe','persist',undefined,ids);const before=ebeneDeck(d.ebenen[0]).map(c=>c.id);installPacks([a,b]);assert.deepEqual(ebeneDeck(d.ebenen[0]).map(c=>c.id),before);const restored=zustandDeserialisieren(JSON.parse(JSON.stringify(zustandSerialisieren(d,new Rng(d.seed))))).dungeon;assert.deepEqual(restored.ebenen[0].deckIds,ids);assert.deepEqual(ebeneAnlegen(restored,2,new Rng(d.seed)).deckIds,ids);}finally{installPacks([]);}});
+test('deck: missing saved definitions fail explicitly instead of changing deck',()=>{try{installPacks([a]);const d=dungeonAnlegen('katakombe','missing',undefined,selectDeck('katakombe',[a],['a']));installPacks([]);assert.throws(()=>ebeneDeck(d.ebenen[0]),/gespeicherte Karte fehlt/);}finally{installPacks([]);}});
+test('catalog: built-in and custom cards listed once with their asset and pack',()=>{try{installPacks([a,b,other]);const rows=catalogRows('katakombe',[a,b,other]);assert.equal(new Set(rows.map(c=>c.id)).size,rows.length);assert.equal(rows.filter(c=>c.pack).length,2);assert.ok(rows.every(c=>c.asset));assert.ok(rows.some(c=>!c.pack&&c.asset.startsWith('modules/the-dungeon/')));}finally{installPacks([]);}});

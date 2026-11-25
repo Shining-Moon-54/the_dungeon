@@ -31,7 +31,7 @@ import {
   neueEbene as _neueEbene,
   kartePlatzieren,
   kartePlacement,
-  GeneratorFehler,
+  GeneratorFehler, ebeneDeck, platzierungErlaubt,
 } from "./generator.mjs";
 
 /** Marker-Kürzel in den Karten-Grids. */
@@ -120,18 +120,21 @@ export function ebeneAnlegen(dungeon, nr, rng, optionen = {}) {
   const ebene = _neueEbene(nr, dungeon.seed);
   ebene.thema = dungeon.thema;
   ebene.typ = optionen.typ ?? "normal";
-  dungeon.ebenen.push(ebene);
+  if(Array.isArray(dungeon.ebenen[0]?.deckIds)) ebene.deckIds=[...dungeon.ebenen[0].deckIds];
 
   // Startkarte: normal ein "eingang", Sanktum eine eigene Halle.
   const kategorie = optionen.startKategorie ?? "eingang";
-  const start = [..._deckVon(dungeon.thema).values()].find(
+  const start = ebeneDeck(ebene).find(
     (k) => k.kategorie === kategorie
   );
   if (!start) {
     throw new GeneratorFehler(`keine '${kategorie}'-Karte im Thema`);
   }
   const rot = rng.int(0, 3);
+  const rotated=karteRotieren(start,rot);
+  if(dungeon.limits&&!platzierungErlaubt(ebene,dungeon.limits,0,0,rotated.breite,rotated.hoehe))throw new GeneratorFehler('Startkarte überschreitet Ebenenlimit');
   kartePlatzieren(ebene, rng, start.id, rot, null);
+  dungeon.ebenen.push(ebene);
   return ebene;
 }
 
@@ -236,7 +239,7 @@ function _freierMarker(dungeon, ebene, art) {
 function _rueckwegKartePlatzieren(dungeon, ziel, rng, _art) {
   const anker = freieAnkerFn(ziel);
   if (anker.length === 0) return null;
-  const treppenKarten = [..._deckVon(dungeon.thema).values()].filter(
+  const treppenKarten = ebeneDeck(ziel).filter(
     (k) => k.kategorie === "treppe"
   );
   if (treppenKarten.length === 0) return null;
@@ -253,6 +256,10 @@ function _rueckwegKartePlatzieren(dungeon, ziel, rng, _art) {
         const gegenSeite = gegenSeiteFn(portTuer.seite);
         const neueTuer = rk.tueren.find((t) => t.seite === gegenSeite);
         if (!neueTuer) continue;
+        if(!rk.marker.some(m=>m.art==='treppe'))continue;
+        const x=portTuer.seite==='n'||portTuer.seite==='s'?port.x+portTuer.cx-neueTuer.cx:portTuer.seite==='w'?port.x-rk.breite:port.x+port.karteBreite;
+        const y=portTuer.seite==='w'||portTuer.seite==='o'?port.y+portTuer.cy-neueTuer.cy:portTuer.seite==='n'?port.y-rk.hoehe:port.y+port.karteHoehe;
+        if(dungeon.limits&&!platzierungErlaubt(ziel,dungeon.limits,x,y,rk.breite,rk.hoehe))continue;
         try {
           const placement = kartePlatzieren(
             ziel, rng, karte.id, rot,
@@ -275,11 +282,6 @@ function _rueckwegKartePlatzieren(dungeon, ziel, rng, _art) {
 /* Interne Helfer                                                       */
 /* ------------------------------------------------------------------ */
 
-import { deckLaden, karteRotieren, gegenSeite as gegenSeiteFn } from "./prefabs.mjs";
+import { karteRotieren, gegenSeite as gegenSeiteFn } from "./prefabs.mjs";
 import { freieAnker as freieAnkerFn } from "./generator.mjs";
 
-const _deckCache = new Map();
-function _deckVon(thema) {
-  if (!_deckCache.has(thema)) _deckCache.set(thema, deckLaden(thema));
-  return _deckCache.get(thema);
-}
