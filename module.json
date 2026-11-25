@@ -26,8 +26,8 @@
     }
   ],
   "url": "https://github.com/Shining-Moon-54/the_dungeon",
-  "license": "MIT",
+  "license": "LICENSE",
   "socket": true,
-  "manifest": "https://github.com/Shining-Moon-54/the_dungeon/releases/download/v0.6.0-alpha.1/module.json",
-  "download": "https://github.com/Shining-Moon-54/the_dungeon/releases/download/v0.6.0-alpha.1/the-dungeon.zip"
+  "manifest": "https://raw.githubusercontent.com/Shining-Moon-54/the_dungeon/install-0.6.0-alpha.1/module.json",
+  "download": "https://github.com/Shining-Moon-54/the_dungeon/archive/refs/heads/install-0.6.0-alpha.1.zip"
 }

@@ -1,7 +1,7 @@
 name: Alpha build and release
 on:
   push:
-    branches: [develop-0.6.0]
+    branches: ['install-*']
   workflow_dispatch:
 permissions:
   contents: write
@@ -32,16 +32,23 @@ jobs:
           test "$version" = "$(node -p "require('./package.json').version")"
           export RELEASE_TAG="$tag"
           node --input-type=module <<'JS'
-          import {readFileSync, existsSync} from 'node:fs';
+          import {readFileSync, existsSync, mkdirSync, writeFileSync} from 'node:fs';
           const m=JSON.parse(readFileSync('module.json','utf8'));
           const base='https://github.com/'+process.env.GITHUB_REPOSITORY+'/releases/download/'+process.env.RELEASE_TAG+'/';
-          if(m.id!=='the-dungeon' || m.manifest!==base+'module.json' || m.download!==base+'the-dungeon.zip') throw Error('Invalid release manifest');
+          const branch='install-'+m.version;
+          if(m.id!=='the-dungeon' || m.manifest!=='https://raw.githubusercontent.com/'+process.env.GITHUB_REPOSITORY+'/'+branch+'/module.json' || m.download!=='https://github.com/'+process.env.GITHUB_REPOSITORY+'/archive/refs/heads/'+branch+'.zip') throw Error('Invalid source manifest');
+          m.manifest=base+'module.json'; m.download=base+'the-dungeon.zip';
+          mkdirSync('dist',{recursive:true});
+          writeFileSync('dist/module.json',JSON.stringify(m,null,2)+'\n');
           for(const p of [...m.esmodules,...m.styles,...m.languages.map(x=>x.path)]) if(!existsSync(p)) throw Error('Missing '+p);
           JS
           test "$(find assets/prefabs -name '*.svg' | wc -l)" -ge 120
           mkdir -p dist
-          cp module.json dist/module.json
-          zip -q -r dist/the-dungeon.zip module.json LICENSE README.md ALPHA-STATUS.md scripts styles lang assets
+          mkdir -p dist/package
+          cp dist/module.json LICENSE README.md ALPHA-STATUS.md dist/package/
+          cp -r scripts styles lang assets dist/package/
+          (cd dist/package && zip -q -r ../the-dungeon.zip .)
+          rm -rf dist/package
           unzip -tq dist/the-dungeon.zip
           unzip -p dist/the-dungeon.zip module.json | cmp - dist/module.json
           echo "tag=$tag" >> "$GITHUB_OUTPUT"

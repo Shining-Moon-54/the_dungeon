@@ -24,3 +24,8 @@ Branch: develop-0.6.0.
 `npm test` führt die bestehenden Logiktests und 12 neue Alpha-Tests aus. Die drei echten Foundry-Integrationstests werden außerhalb von Foundry übersprungen. `npm run lint` prüft JavaScript-Syntax.
 
 Nicht unabhängig in Foundry VTT 14 oder auf dem Pi getestet. Insbesondere Foundry-Dialoge, Dokument-Schemata, Scene-Control-Hooks, Compendium-Import und Token-Transfer benötigen einen echten Integrationstest. GitHub-Actions-Workflow für einen versionsgebundenen Alpha-Prerelease eingerichtet; die tatsächliche Veröffentlichung muss anhand des Workflow-Laufs verifiziert werden. Keine automatischen Updates zwischen Alpha-Versionen. Nicht in einer laufenden Kampagne verwenden.
+
+
+## GitHub-Installationsweg
+
+Versionierter Quellarchiv-Installationsbranch: `install-0.6.0-alpha.1`. Manifest: https://raw.githubusercontent.com/Shining-Moon-54/the_dungeon/install-0.6.0-alpha.1/module.json. Der gepackte Prerelease ist zusätzlich vorgesehen, aber erst nach erfolgreichem Actions-Lauf verfügbar. Eine Installation in Foundry selbst wurde noch nicht verifiziert.

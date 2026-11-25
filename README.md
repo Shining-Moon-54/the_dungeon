@@ -98,12 +98,16 @@ MIT – siehe [LICENSE](LICENSE).
 
 ## GitHub-Installation (Alpha)
 
-Nur in einer separaten Testwelt unter Foundry VTT 14 verwenden. Im Setup unter **Add-on Modules → Install Module** die Manifest-URL einfügen:
+**Entwicklungsstand – nur in einer separaten Testwelt mit Foundry VTT 14 verwenden.**
 
-`https://github.com/Shining-Moon-54/the_dungeon/releases/download/v0.6.0-alpha.1/module.json`
+Im Foundry-Setup unter **Add-on Modules → Install Module** diese Manifest-URL einfügen:
 
-Die URL funktioniert, sobald der GitHub-Actions-Release erfolgreich veröffentlicht ist. Alternativ `the-dungeon.zip` aus dem [Alpha-Release](https://github.com/Shining-Moon-54/the_dungeon/releases/tag/v0.6.0-alpha.1) herunterladen und in `Data/modules/the-dungeon/` entpacken. Die ZIP-Datei enthält `module.json` direkt auf oberster Ebene. Der Alpha-Kanal verwendet versionsgebundene Manifest-URLs; zukünftige Alpha-Versionen erfordern einen neuen Manifest-Link. Siehe ALPHA-STATUS.md für bekannte Einschränkungen.
+`https://raw.githubusercontent.com/Shining-Moon-54/the_dungeon/install-0.6.0-alpha.1/module.json`
+
+Der versionierte Installationsbranch enthält den vollständigen Quellcode und sämtliche Karten. Das Manifest verweist auf das zugehörige GitHub-Quellarchiv; dieser Installationsweg benötigt keinen erfolgreichen Actions-Lauf. Der Branch wird für diese Version nicht weiterentwickelt. Alternativ kann das [Quellarchiv](https://github.com/Shining-Moon-54/the_dungeon/archive/refs/heads/install-0.6.0-alpha.1.zip) heruntergeladen und sein Inhalt nach `Data/modules/the-dungeon/` kopiert werden, sodass `module.json` direkt dort liegt.
+
+Sobald der GitHub-Actions-Prerelease veröffentlicht wurde, steht zusätzlich das kompakte Installationspaket mit einem separaten [Release-Manifest](https://github.com/Shining-Moon-54/the_dungeon/releases/download/v0.6.0-alpha.1/module.json) zur Verfügung. Siehe [ALPHA-STATUS.md](ALPHA-STATUS.md) für bekannte Einschränkungen. Zukünftige Alpha-Versionen verwenden einen neuen Manifest-Link.
 
 ### Build und Release
 
-`npm run svg`, `npm run lint` und `npm test` laufen in GitHub Actions. Der Workflow erzeugt ein ZIP mit ausschließlich den Laufzeitdateien, prüft Manifest und Archiv und veröffentlicht die Manifestdatei sowie das ZIP als Prerelease. Das Release wird nur erstellt, wenn alle Build-Schritte erfolgreich sind. Ein vorhandener Tag wird nicht überschrieben.
+Neue Versionen werden über einen neuen `install-<version>`-Branch veröffentlicht. GitHub Actions generiert die Karten, prüft JavaScript-Syntax und führt die Tests aus. Der Workflow erzeugt ein Laufzeit-ZIP mit `module.json` auf oberster Ebene und veröffentlicht die Manifestdatei und das ZIP als Prerelease. Bestehende Release-Tags werden nicht überschrieben.
