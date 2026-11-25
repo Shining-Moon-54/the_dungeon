@@ -1,0 +1,19 @@
+{
+  "name": "the-dungeon",
+  "version": "0.6.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "description": "The Dungeon – prozedurales Karten-Deck-Dungeon-Modul für Foundry VTT 14. Entwicklungswerkzeuge; das Modul selbst benötigt keine npm-Abhängigkeiten.",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "svg": "node tools/generate-prefab-svgs.mjs",
+    "render": "node tools/render-dungeon.mjs",
+    "lint": "find scripts tools tests -name '*.mjs' -exec node --check {} \\;"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shining-Moon-54/the_dungeon.git"
+  },
+  "license": "MIT",
+  "url": "https://github.com/Shining-Moon-54/the_dungeon"
+}

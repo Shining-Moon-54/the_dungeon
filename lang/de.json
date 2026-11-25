@@ -1,0 +1,38 @@
+{
+  "THE DUNGEON": {
+    "titel": "The Dungeon",
+    "hinweis-bereit": "The Dungeon: Karten-Deck bereit.",
+    "dungeon-generieren": "Dungeon generieren",
+    "ebene-generieren": "Dungeon-Ebene(n) generieren",
+    "thema": "Thema",
+    "themen": {
+      "katakombe": "Katakomben",
+      "hoehle": "Höhle",
+      "turm": "Turm",
+      "stadt": "Stadt"
+    },
+    "modi": {
+      "statisch": "Statischer Dungeon",
+      "dynamisch": "Dynamisch wachsender Dungeon",
+      "veraendernd": "Sich verändernder Dungeon",
+      "chaotisch": "Chaotischer Dungeon"
+    },
+    "limits": {
+      "max-karten-ebene": "Maximale Raumanzahl pro Ebene",
+      "max-karten-groesse": "Maximale Kartengröße (Grid)",
+      "max-ebenen": "Maximale Ebenenanzahl"
+    },
+    "dichten": {
+      "gegner": "Gegnerdichte",
+      "fallen": "Fallendichte",
+      "raetsel": "Rätseldichte",
+      "schaetze": "Schatzhäufigkeit"
+    },
+    "settings": {
+      "reset-beim-verlassen": "Reset beim Verlassen",
+      "reset-beim-verlassen-hinweis": "Dungeon automatisch zurücksetzen, wenn die Gruppe ihn verlässt.",
+      "automatische-ausloeser": "Automatische Auslöser",
+      "automatische-ausloeser-hinweis": "Auslöser feuern automatisch statt per GM-Bestätigung."
+    }
+  }
+}

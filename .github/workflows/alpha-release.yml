@@ -1,0 +1,64 @@
+name: Alpha build and release
+on:
+  push:
+    branches: [develop-0.6.0]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: the-dungeon-alpha-release
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate maps
+        run: npm run svg
+      - name: Check syntax and run tests
+        run: |
+          npm run lint
+          npm test
+      - name: Build and verify Foundry module
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(node -p "require('./module.json').version")
+          tag="v$version"
+          test "$version" = "$(node -p "require('./package.json').version")"
+          export RELEASE_TAG="$tag"
+          node --input-type=module <<'JS'
+          import {readFileSync, existsSync} from 'node:fs';
+          const m=JSON.parse(readFileSync('module.json','utf8'));
+          const base='https://github.com/'+process.env.GITHUB_REPOSITORY+'/releases/download/'+process.env.RELEASE_TAG+'/';
+          if(m.id!=='the-dungeon' || m.manifest!==base+'module.json' || m.download!==base+'the-dungeon.zip') throw Error('Invalid release manifest');
+          for(const p of [...m.esmodules,...m.styles,...m.languages.map(x=>x.path)]) if(!existsSync(p)) throw Error('Missing '+p);
+          JS
+          test "$(find assets/prefabs -name '*.svg' | wc -l)" -ge 120
+          mkdir -p dist
+          cp module.json dist/module.json
+          zip -q -r dist/the-dungeon.zip module.json LICENSE README.md ALPHA-STATUS.md scripts styles lang assets
+          unzip -tq dist/the-dungeon.zip
+          unzip -p dist/the-dungeon.zip module.json | cmp - dist/module.json
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: the-dungeon-alpha
+          path: dist/
+      - name: Publish versioned GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.package.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; preserving existing assets. Bump module and package versions to publish another build."
+            exit 0
+          fi
+          gh release create "$TAG" --target "$GITHUB_SHA" --prerelease --title "The Dungeon $TAG" --notes-file ALPHA-STATUS.md dist/module.json dist/the-dungeon.zip

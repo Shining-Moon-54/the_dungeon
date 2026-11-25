@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="900" viewBox="0 0 500 900">
+<title>Abstellkammer</title>
+<rect width="500" height="900" fill="transparent"/>
+<rect x="100" y="100" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="200" y="100" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="300" y="100" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="100" y="200" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="200" y="200" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="300" y="200" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="100" y="300" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="200" y="300" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="300" y="300" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="100" y="400" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="200" y="400" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="300" y="400" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="400" y="400" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="400" y="400" width="100" height="100" fill="#a35d2b" opacity="0.25"/>
+<rect x="100" y="500" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="200" y="500" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="300" y="500" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="100" y="600" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="200" y="600" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="300" y="600" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="100" y="700" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="200" y="700" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+<rect x="300" y="700" width="100" height="100" fill="#7a6a63" stroke="#55493f" stroke-width="3"/>
+</svg>

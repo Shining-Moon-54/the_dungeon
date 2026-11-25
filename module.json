@@ -1,0 +1,33 @@
+{
+  "id": "the-dungeon",
+  "title": "The Dungeon",
+  "description": "Prozedurale Karten-Deck-Dungeons mit Ebenen, Save Points, Rauminhalten und GM-Steuerung (Alpha-Vorschau).",
+  "version": "0.6.0-alpha.1",
+  "authors": [
+    {
+      "name": "Shining-Moon-54"
+    }
+  ],
+  "compatibility": {
+    "minimum": "14",
+    "maximum": "14"
+  },
+  "esmodules": [
+    "scripts/main.mjs"
+  ],
+  "styles": [
+    "styles/dungeon.css"
+  ],
+  "languages": [
+    {
+      "lang": "de",
+      "name": "Deutsch",
+      "path": "lang/de.json"
+    }
+  ],
+  "url": "https://github.com/Shining-Moon-54/the_dungeon",
+  "license": "MIT",
+  "socket": true,
+  "manifest": "https://github.com/Shining-Moon-54/the_dungeon/releases/download/v0.6.0-alpha.1/module.json",
+  "download": "https://github.com/Shining-Moon-54/the_dungeon/releases/download/v0.6.0-alpha.1/the-dungeon.zip"
+}

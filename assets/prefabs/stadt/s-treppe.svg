@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500">
+<title>Kellertreppe</title>
+<rect width="1200" height="500" fill="transparent"/>
+<rect x="500" y="0" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="500" y="0" width="100" height="100" fill="#a35d2b" opacity="0.25"/>
+<rect x="100" y="100" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="200" y="100" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="300" y="100" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="400" y="100" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="500" y="100" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="600" y="100" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="700" y="100" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="800" y="100" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="900" y="100" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="1000" y="100" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="100" y="200" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="200" y="200" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="300" y="200" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="400" y="200" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="500" y="200" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<text x="550" y="262" text-anchor="middle" font-size="42" fill="#d9c9a8" font-family="serif">T</text>
+<rect x="600" y="200" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="700" y="200" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="800" y="200" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="900" y="200" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="1000" y="200" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="100" y="300" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="200" y="300" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="300" y="300" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="400" y="300" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="500" y="300" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="600" y="300" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="700" y="300" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="800" y="300" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="900" y="300" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="1000" y="300" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="500" y="400" width="100" height="100" fill="#8a8272" stroke="#615a4e" stroke-width="3"/>
+<rect x="500" y="400" width="100" height="100" fill="#a35d2b" opacity="0.25"/>
+</svg>
