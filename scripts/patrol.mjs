@@ -1,7 +1,7 @@
 import {globalesRaster,tuerKanteKey} from './scene-builder.mjs';
 import {kartePlacement} from './generator.mjs';
 const key=(x,y)=>x+','+y;
-const safe=new Set(['eingang','ankunft','sanktum']);
+const safe=new Set(['eingang','ankunft','sanktum','boss']);
 export function patrolGrid(e){
  const {boden}=globalesRaster(e),allowed=new Map(),connections=new Set();
  if(e.typ==='sanctuary')return {allowed,connections};

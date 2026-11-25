@@ -11,6 +11,7 @@ import {installPacks,savePack} from './custom-decks.mjs';
 import {populateLevel} from './populate.mjs';
 import {modeOf,grow,leafCandidates,removeLeaf} from './modes.mjs';
 import {connectedCells,nearCells,planArrival} from './arrival.mjs';
+import {IntervalGate,patrolMinutes} from './timing.mjs';
 import {patrolStep} from './patrol-foundry.mjs';
 import {openDashboard,openPlayerPanel} from './dashboard.mjs';
 const aktiv=new Map(),queues=new Map(),history=new Map();
@@ -25,12 +26,12 @@ function level(d,n){const e=d.ebenen.find(e=>e.nr===Number(n));if(!e)throw Error
 function sceneFor(d,e){return game.scenes.get(d.szenenIds?.[e.nr]);}
 function snap(e){return clone(zustandSerialisieren(e.dungeon,e.rng));}
 async function sync(d,e,rng){const {scene}=await ebeneSyncSzene(d,e,{szenenId:d.szenenIds?.[e.nr],name:`${d.name??'The Dungeon'} – E${e.nr}${e.typ==='sanctuary'?' · Sanktum':''}`});d.szenenIds??={};d.szenenIds[e.nr]=scene.id;await zustandSpeichern(d,rng);try{await populateLevel(d,e,scene);}catch(err){console.warn(M,'Rauminhalte konnten nicht vollständig erstellt werden',err);ui.notifications.warn('Rauminhalte unvollständig – über das Dashboard erneut versuchen.');}await zustandSpeichern(d,rng);return scene;}
-export async function dungeonErstellen(o={}){gm();const config=dungeonKonfiguration(o);config.levels=Array.isArray(o.levels)?o.levels:[3,3,3,3];config.rules=o.rules==='2014'?'2014':'2024';config.difficulty=o.difficulty??(config.rules==='2014'?'hard':'moderate');config.maxCR=Number.isFinite(Number(o.maxCR))?Number(o.maxCR):30;config.levelStep=Math.max(0,Math.min(5,Math.floor(Number(o.levelStep)||0)));config.autoPopulate=o.autoPopulate===true;config.reset=o.reset===true;config.interval=Math.max(0,Math.floor(Number(o.interval)||0));if(o.statisch)config.modus='statisch';
+export async function dungeonErstellen(o={}){gm();const config=dungeonKonfiguration(o);config.levels=Array.isArray(o.levels)?o.levels:[3,3,3,3];config.rules=o.rules==='2014'?'2014':'2024';config.difficulty=o.difficulty??(config.rules==='2014'?'hard':'moderate');config.maxCR=Number.isFinite(Number(o.maxCR))?Number(o.maxCR):30;config.levelStep=Math.max(0,Math.min(5,Math.floor(Number(o.levelStep)||0)));config.autoPopulate=o.autoPopulate===true;config.reset=o.reset===true;config.interval=Math.max(0,Math.floor(Number(o.interval)||0));config.patrolMinutes=patrolMinutes(o.patrolMinutes);config.bossEnabled=o.bossEnabled===true;if(o.statisch)config.modus='statisch';
  const theme=o.thema??'katakombe';
  config.packIds=Array.isArray(o.packIds)?[...o.packIds]:[];
  config.includeBuiltin=o.includeBuiltin!==false;
  const deckIds=selectDeck(theme,game.settings.get(M,'packs'),config.packIds,config.includeBuiltin);
- const seed=String(o.seed||Date.now()),d=dungeonAnlegen(theme,seed,config.limits,deckIds);d.id=neueDungeonId();d.name=String(o.name||'The Dungeon');d.config=config;d.ausloeser=o.ausloeser??AUSLOESER.AUTOMATISCH;d.verbindungen=[];d.savePoints=[];d.sanktue=[];d.oberwelt=o.oberwelt??null;d.szenenIds={};d.content={};const rng=new Rng(seed);if(modeOf(d)==='statisch')ebeneGenerieren(d.ebenen[0],d.limits);const scene=await sync(d,d.ebenen[0],rng);aktiv.set(d.id,{dungeon:d,rng});return {dungeon:d,scene,rng};}
+ const seed=String(o.seed||Date.now()),d=dungeonAnlegen(theme,seed,config.limits,deckIds,{bossEnabled:config.bossEnabled});d.id=neueDungeonId();d.name=String(o.name||'The Dungeon');d.config=config;d.ausloeser=o.ausloeser??AUSLOESER.AUTOMATISCH;d.verbindungen=[];d.savePoints=[];d.sanktue=[];d.oberwelt=o.oberwelt??null;d.szenenIds={};d.content={};const rng=new Rng(seed);if(modeOf(d)==='statisch')ebeneGenerieren(d.ebenen[0],d.limits);const scene=await sync(d,d.ebenen[0],rng);aktiv.set(d.id,{dungeon:d,rng});return {dungeon:d,scene,rng};}
 async function expand(id,n,anchor=null){return queue(id,async()=>{const entry=get(id),{dungeon:d,rng}=entry,e=level(d,n);if(anchor&&!freieAnker(e).some(a=>a.id===anchor))return null;const before=snap(entry),p=grow(d,e,rng,anchor);await sync(d,e,rng);if(p)history.set(id,{before,after:JSON.stringify(snap(entry)),level:e.nr,placement:p.id});return p;});}
 export async function dungeonErweitern(d,rng,n=d.ebenen.at(-1).nr,anchor=null){return expand(d.id,n,anchor);}
 function noPlayersViewing(scene){return !!scene && ![...game.users].some(u=>!u.isGM&&u.active&&(u.viewedScene===scene.id||u.viewedScene?.id===scene.id));}
@@ -85,7 +86,7 @@ async function sanctuary(id){return queue(id,async()=>{const {dungeon:d,rng}=get
 async function teleport(id,sp,tokens=selectedTokens(),users=null){const {dungeon:d}=get(id);const p=d.savePoints.find(s=>s.id===sp);if(!p||p.gesperrt)throw Error('Save Point nicht freigegeben');await moveTokens(tokens,game.scenes.get(d.szenenIds[p.ebeneNr]),markerPixel(d,p),{d,e:level(d,p.ebeneNr),marker:p},users);}
 async function enter(id){const {dungeon:d}=get(id);const e=level(d,1),p=markerDerEbene(e,'eingang')[0];if(!p)throw Error('Eingang fehlt');await moveTokens(selectedTokens(),sceneFor(d,e),markerPixel(d,p),{d,e,marker:p});}
 async function leave(id){const {dungeon:d}=get(id);const t=rueckkehrZiel(d);if(!t)throw Error('Kein Oberweltziel eingerichtet.');await moveTokens(selectedTokens(),game.scenes.get(t.szenenId),{x:t.x,y:t.y});if(d.config?.reset)await reset(id);}
-async function reset(id){return queue(id,async()=>{const {dungeon:d}=get(id);const scenes=Object.values(d.szenenIds).map(id=>game.scenes.get(id)).filter(Boolean);if(scenes.some(s=>[...s.tokens].some(playerToken)||!noPlayersViewing(s)))throw Error('Reset gesperrt: Spieler befinden sich noch im Dungeon.');const c=d.config??{};const fresh=await dungeonErstellen({name:d.name,thema:d.thema,seed:`${d.seed}:reset:${(d.resetCount??0)+1}`,modus:c.modus,ausloeser:d.ausloeser,oberwelt:d.oberwelt,maxKartenProEbene:d.limits.maxKartenProEbene,maxKartenBreite:d.limits.maxAusdehnung.breite,maxKartenHoehe:d.limits.maxAusdehnung.hoehe,maxEbenen:d.limits.maxEbenen,levels:c.levels,rules:c.rules,difficulty:c.difficulty,maxCR:c.maxCR,levelStep:c.levelStep,autoPopulate:c.autoPopulate,reset:c.reset,interval:c.interval,packIds:c.packIds,includeBuiltin:c.includeBuiltin,...Object.fromEntries(Object.entries(c.dichten??{}).map(([k,v])=>['dichte'+k[0].toUpperCase()+k.slice(1),v*100]))});fresh.dungeon.resetCount=(d.resetCount??0)+1;await zustandSpeichern(fresh.dungeon,fresh.rng);for(const s of scenes)await s.setFlag(M,'archived',true);aktiv.delete(id);return fresh;});}
+async function reset(id){return queue(id,async()=>{const {dungeon:d}=get(id);const scenes=Object.values(d.szenenIds).map(id=>game.scenes.get(id)).filter(Boolean);if(scenes.some(s=>[...s.tokens].some(playerToken)||!noPlayersViewing(s)))throw Error('Reset gesperrt: Spieler befinden sich noch im Dungeon.');const c=d.config??{};const fresh=await dungeonErstellen({name:d.name,thema:d.thema,seed:`${d.seed}:reset:${(d.resetCount??0)+1}`,modus:c.modus,ausloeser:d.ausloeser,oberwelt:d.oberwelt,maxKartenProEbene:d.limits.maxKartenProEbene,maxKartenBreite:d.limits.maxAusdehnung.breite,maxKartenHoehe:d.limits.maxAusdehnung.hoehe,maxEbenen:d.limits.maxEbenen,levels:c.levels,rules:c.rules,difficulty:c.difficulty,maxCR:c.maxCR,levelStep:c.levelStep,autoPopulate:c.autoPopulate,reset:c.reset,interval:c.interval,patrolMinutes:c.patrolMinutes,bossEnabled:c.bossEnabled,packIds:c.packIds,includeBuiltin:c.includeBuiltin,...Object.fromEntries(Object.entries(c.dichten??{}).map(([k,v])=>['dichte'+k[0].toUpperCase()+k.slice(1),v*100]))});fresh.dungeon.resetCount=(d.resetCount??0)+1;await zustandSpeichern(fresh.dungeon,fresh.rng);for(const s of scenes)await s.setFlag(M,'archived',true);aktiv.delete(id);return fresh;});}
 const api={patrol:(id,n)=>queue(id,async()=>{const {dungeon:d,rng}=get(id),e=level(d,n),scene=sceneFor(d,e);if(!scene)throw Error('Szene fehlt');const count=await patrolStep(d,e,scene,rng);await zustandSpeichern(d,rng);return count;}),async handleRequest(c){gm();const {req,selected,u,markerIndex}=c;const users=[u.id];if(req.action==='transition')return transition(req.dungeonId,req.level,markerIndex,selected,users);if(req.action==='teleport')return teleport(req.dungeonId,req.target,selected,users);if(req.action==='return'){const d=get(req.dungeonId).dungeon,t=rueckkehrZiel(d);if(!t)throw Error('Kein Rückkehrziel');return moveTokens(selected,game.scenes.get(t.szenenId),{x:t.x,y:t.y},null,users);}throw Error('Ungültige Anfrage');},aktiv,dungeonErstellen,dungeonErweitern:expand,verbindungBenutzen:transition,sanktumErstellen:sanctuary,teleport,enter,leave,reset,reshape,undo,savePack,
  savePoints:id=>verfuegbareSavePoints(get(id).dungeon,true),
  savePointSperren:(id,sp,locked)=>queue(id,async()=>{const {dungeon:d,rng}=get(id);savePointSperren(d,sp,locked);await zustandSpeichern(d,rng);}),
@@ -100,4 +101,23 @@ Hooks.on('updateWall',async(wall,changed)=>{if(!primary()||changed.ds!==1||wall.
 // Mark rooms entered by player characters; never reshuffle these rooms later.
 Hooks.on('updateToken',(token,changed)=>{if(!primary()||!playerToken(token)||(!('x'in changed)&&!('y'in changed)))return;const id=token.parent.getFlag(M,'dungeonId'),n=token.parent.getFlag(M,'ebeneNr');if(!id||!aktiv.has(id))return;queue(id,async()=>{const {dungeon:d,rng}=get(id),e=level(d,n),o=szenenOffset(d);const x=Math.floor((token.x-o.x)/100),y=Math.floor((token.y-o.y)/100);const p=[...e.karten.values()].find(p=>kartePlacement(e,p).zellen[y-p.y]?.[x-p.x]?.boden);if(!p)return;e.protected??=[];if(e.protected.includes(p.id))return;e.protected.push(p.id);await zustandSpeichern(d,rng);}).catch(notify);});
 // Time-based changes only on levels not currently viewed by players, opt-in.
+// Automatic patrols are independent of map RNG; only occupied floors, one queued job per floor.
+const patrolGate=new IntervalGate();
+Hooks.once('ready',()=>{if(!game.user.isGM)return;setInterval(()=>{
+ if(!primary())return;
+ const keys=new Set(),now=Date.now();
+ for(const [id,{dungeon:d}] of aktiv)for(const e of d.ebenen){
+  const k=id+':'+e.nr,scene=sceneFor(d,e);keys.add(k);
+  if(!patrolGate.due(k,d.config?.patrolMinutes??0,now))continue;
+  if(!scene||e.typ==='sanctuary'||![...scene.tokens].some(playerToken)){patrolGate.finish(k);continue;}
+  queue(id,async()=>{
+   if(!primary()||!aktiv.has(id))return;
+   const current=get(id).dungeon,floor=level(current,e.nr),s=sceneFor(current,floor);
+   if(!s||![...s.tokens].some(playerToken))return;
+   if([...(game.combats??[])].some(c=>c.started&&(c.scene?.id??c.scene)===s.id))return;
+   await patrolStep(current,floor,s,new Rng(current.seed+':patrol:'+floor.nr+':'+now));
+  }).catch(console.warn).finally(()=>patrolGate.finish(k));
+ }
+ patrolGate.prune(keys);
+},30000);});
 const ticked=new Map();Hooks.once('ready',()=>{if(!game.user.isGM)return;setInterval(()=>{if(!primary())return;for(const [id,{dungeon:d}] of aktiv){const mins=d.config?.interval;if(!mins||!['veraendernd','chaotisch'].includes(modeOf(d)))continue;if(!ticked.has(id)){ticked.set(id,Date.now());continue;}if(Date.now()-ticked.get(id)<mins*60000)continue;ticked.set(id,Date.now());for(const e of d.ebenen){const s=sceneFor(d,e);if(s&&noPlayersViewing(s))reshape(id,e.nr).catch(console.warn);}}},30000);});

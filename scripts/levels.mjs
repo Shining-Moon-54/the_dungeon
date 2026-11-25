@@ -120,6 +120,7 @@ export function ebeneAnlegen(dungeon, nr, rng, optionen = {}) {
   const ebene = _neueEbene(nr, dungeon.seed);
   ebene.thema = dungeon.thema;
   ebene.typ = optionen.typ ?? "normal";
+  ebene.bossEnabled=ebene.typ!=="sanctuary"&&dungeon.config?.bossEnabled===true;
   if(Array.isArray(dungeon.ebenen[0]?.deckIds)) ebene.deckIds=[...dungeon.ebenen[0].deckIds];
 
   // Startkarte: normal ein "eingang", Sanktum eine eigene Halle.

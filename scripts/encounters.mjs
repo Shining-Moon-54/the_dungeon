@@ -20,7 +20,8 @@ export function adjustedXP(monsters, rules, partySize){
 }
 const TYPE={katakombe:['undead','fiend','construct'],hoehle:['beast','monstrosity','ooze','elemental'],turm:['construct','elemental','aberration','humanoid'],stadt:['humanoid','beast','fiend','undead']};
 export function chooseEncounter(catalog, config, theme, rng, options={}){
- const cap=budget(config.levels,config.rules,config.difficulty);const candidates=catalog.filter(m=>Number.isFinite(m.cr)&&m.cr<=(config.maxCR??30)&&m.xp>0&&TYPE[theme]?.includes(m.type)&&m.xp<=cap);
+ const difficulty=options.boss?(config.rules==='2014'?'deadly':'high'):config.difficulty;
+ const cap=budget(config.levels,config.rules,difficulty);const candidates=catalog.filter(m=>Number.isFinite(m.cr)&&m.cr<=(config.maxCR??30)&&m.xp>0&&TYPE[theme]?.includes(m.type)&&m.xp<=cap);
  let result=[];
  for(let i=0;i<Math.min(8,config.levels.length*2,options.maxMonsters??8);i++){
    const fits=candidates.filter(m=>adjustedXP([...result,m],config.rules,config.levels.length)<=cap);
@@ -55,12 +56,12 @@ export function roomContent(dungeon,ebene,placement,catalog=[]){
  const lvl=Math.max(...config.levels),theme=dungeon.thema;
  const positions=arts=>markers.filter(m=>arts.includes(m.art)).map(({art,...pos})=>pos);
  const enemies=positions(['gegner-elite']).concat(positions(['gegner']));
- const elite=markers.some(m=>m.art==='gegner-elite')||placement.kategorie==='boss';
- if(enemies.length||(randomAllowed&&cells.length&&rng.chance(d.gegner))){
+ const boss=placement.kategorie==='boss',elite=markers.some(m=>m.art==='gegner-elite')||boss;
+ if(enemies.length||(randomAllowed&&cells.length&&(boss||rng.chance(d.gegner)))){
   const slots=enemies.length?enemies:cells;
-  const encounter=chooseEncounter(catalog,config,theme,rng,{maxMonsters:slots.length,elite});
+  const encounter=chooseEncounter(catalog,config,theme,rng,{maxMonsters:slots.length,elite,boss});
   const monsters=encounter.monsters.map(m=>({...m,...(enemies.length?enemies.shift():take())}));
-  result.encounter={...encounter,monsters,adjusted:adjustedXP(monsters,config.rules,config.levels.length),elite,unfilled:enemies};
+  result.encounter={...encounter,monsters,adjusted:adjustedXP(monsters,config.rules,config.levels.length),elite,boss,unfilled:enemies};
  }
  function objects(arts,chance,make){
   const fixed=positions(arts);
@@ -68,7 +69,7 @@ export function roomContent(dungeon,ebene,placement,catalog=[]){
   if(randomAllowed&&cells.length&&rng.chance(chance))return [{...take(),...make()}];
   return [];
  }
- const loots=objects(['truhe'],d.schaetze,()=>lootFor(theme,lvl,rng));
+ const loots=objects(['truhe'],boss?1:d.schaetze,()=>{const loot=lootFor(theme,lvl,rng);return boss?{...loot,name:'Bossbelohnung · '+loot.name,gp:loot.gp*3}:loot;});
  const traps=objects(['falle'],d.fallen,()=>trapFor(theme,lvl,rng));
  const puzzles=objects(['raetsel'],d.raetsel,()=>({id:rng.int(1,PUZZLES.length)}));
  if(loots.length){result.loots=loots;result.loot=loots[0];}

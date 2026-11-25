@@ -8,7 +8,7 @@ async function folder(type,name,parent=null){let f=game.folders.find(f=>f.type==
 export function roomJournalHtml(c,conf={}){
  const lines=[];
  if(c.encounter){
-  const enc=c.encounter;lines.push(`<h2>${enc.elite?'Elite / ':''}Begegnung</h2><p>Budget ${enc.budget} XP; geplant ${enc.adjusted} XP (${esc(conf.rules??'2024')}).</p>`);
+  const enc=c.encounter;lines.push(`<h2>${enc.boss?'Boss / ':enc.elite?'Elite / ':''}Begegnung</h2><p>Budget ${enc.budget} XP; geplant ${enc.adjusted} XP (${esc(conf.rules??'2024')}).</p>`);
   if(!enc.monsters.length)lines.push('<p>Keine geeigneten Monster im zugänglichen Kompendium gefunden.</p>');
   for(const m of enc.monsters)lines.push(`<p>${esc(m.name)} (CR ${m.cr}, ${m.xp} XP) · (${m.x}, ${m.y})</p>`);
   if(enc.unfilled?.length)lines.push(`<p>${enc.unfilled.length} Gegnerposition(en) ohne passende Besetzung; Budget/CR-Grenze eingehalten.</p>`);

@@ -333,7 +333,9 @@ export function kandidaten(ebene, limits) {
   const anteil = ebene.karten.size / limits.maxKartenProEbene;
   const treppenFaellig = anteil >= TREPPE_AB_ANTEIL && ebene.nr < limits.maxEbenen;
   const liste = [];
+  const bossFaellig=ebene.bossEnabled===true&&anteil>=0.7&&![...ebene.karten.values()].some(p=>p.kategorie==='boss');
   for (const k of ebeneDeck(ebene)) {
+    if(k.kategorie==='boss'){if(bossFaellig)for(let rot=0;rot<4;rot++)liste.push({karte:k,rot,gewicht:12});continue;}
     const gewicht = KATEGORIE_GEWICHTE[k.kategorie] ?? 0;
     if (k.kategorie === "treppe") {
       if (!treppenFaellig) continue;
@@ -461,13 +463,14 @@ export function rngZustand(ebene) {
  * Dungeon anlegen (nur Daten): Ebene 1 mit (rotierter) Startkarte.
  * @returns {object} dungeon { id, thema, seed, limits, ebenen }
  */
-export function dungeonAnlegen(thema, seed, limits = DEFAULT_LIMITS, deckIds = undefined) {
+export function dungeonAnlegen(thema, seed, limits = DEFAULT_LIMITS, deckIds = undefined, options = {}) {
   if (!Object.prototype.hasOwnProperty.call(THEMEN, thema)) {
     throw new GeneratorFehler(`unbekanntes Thema '${thema}'`);
   }
   const id = dungeonId();
   const ebene = neueEbene(1, seed);
   ebene.thema = thema;
+  ebene.bossEnabled=options.bossEnabled===true;
   if(Array.isArray(deckIds)) ebene.deckIds=[...deckIds];
   const rng = createRng(seed);
   const startKarte = ebeneDeck(ebene).find(

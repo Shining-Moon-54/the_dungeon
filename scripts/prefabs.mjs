@@ -199,6 +199,7 @@ export const KARTEN = {
   ],
 
   hoehle: [
+    {"id":"h-bosshalle","name":"Kristallhöhle","kategorie":"boss","grid":["#############","##.........##","#...........#","#..g.....g..#","w.....G.....o","#...........#","#.....K.....#","##.........##","#############"]},
     {"id":"h-ankunft","name":"Ankunftsgrotte","kategorie":"ankunft","grid":["###n###","#.....#","#.....#","#..T..#","#.....#","#.....#","###s###"]},
     {
       id: "h-eingang", name: "Höhlenmund", kategorie: "eingang",
@@ -285,6 +286,7 @@ export const KARTEN = {
   ],
 
   turm: [
+    {"id":"t-bosshalle","name":"Arkanes Observatorium","kategorie":"boss","grid":["######n######","#...........#","#..#.....#..#","#..g.....g..#","#.....G.....#","#...........#","#.....K.....#","#...........#","######s######"]},
     {"id":"t-ankunft","name":"Treppenpodest","kategorie":"ankunft","grid":["###n###","#.....#","#.....#","#..T..#","#.....#","#.....#","###s###"]},
     {
       id: "t-eingang", name: "Turmeingang", kategorie: "eingang",
@@ -363,6 +365,7 @@ export const KARTEN = {
   ],
 
   stadt: [
+    {"id":"s-bosshalle","name":"Halle des Schattenrats","kategorie":"boss","grid":["#############","#...........#","#..g.....g..#","#...........#","w.....G.....o","#...........#","#.....K.....#","#...........#","#############"]},
     {"id":"s-ankunft","name":"Kellerzugang","kategorie":"ankunft","grid":["###n###","#.....#","#.....#","#..T..#","#.....#","#.....#","###s###"]},
     {
       id: "s-eingang", name: "Stadttor", kategorie: "eingang",

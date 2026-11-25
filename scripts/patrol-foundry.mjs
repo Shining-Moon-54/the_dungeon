@@ -4,7 +4,7 @@ export async function patrolStep(d,e,scene,rng){
  if(!game.user?.isGM)throw Error('Nur GM');
  if(e.typ==='sanctuary'||scene.getFlag(M,'archived'))return 0;
  if(scene.grid.size!==100)throw Error('Dungeon benötigt 100 px Raster');
- if(game.combat?.started&&game.combat.scene?.id===scene.id)throw Error('Patrouille während aktivem Kampf gesperrt');
+ if([...(game.combats??[])].some(c=>c.started&&(c.scene?.id??c.scene)===scene.id)||game.combat?.started&&(game.combat.scene?.id??game.combat.scene)===scene.id)throw Error('Patrouille während aktivem Kampf gesperrt');
  const off=szenenOffset(d),grid=patrolGrid(e),tokens=[...scene.tokens],walls=[...scene.walls],occupied=new Set();
  const cells=t=>{const x=(t.x-off.x)/100,y=(t.y-off.y)/100,w=Number(t.width)||1,h=Number(t.height)||1,out=[];for(let i=Math.floor(x);i<Math.ceil(x+w);i++)for(let j=Math.floor(y);j<Math.ceil(y+h);j++)out.push(i+','+j);return out;};
  for(const t of tokens)for(const k of cells(t))occupied.add(k);
