@@ -7,3 +7,26 @@
 .td-stat,.td-header{display:flex;flex-direction:column;gap:.35rem;padding:.9rem;border:1px solid #a9976b66;border-radius:8px;background:linear-gradient(135deg,#9b7e3b22,transparent);}
 .td-header{flex-direction:row;align-items:center;gap:.8rem;}.td-header i{font-size:2rem;color:#b79550;}.td-header h2{margin:0;border:0;letter-spacing:.12em;}.td-header p{margin:0;opacity:.7;}.td-muted{font-size:.8rem;opacity:.75;}
 @media(max-width:650px){.td-grid{grid-template-columns:1fr;}.td-panel{max-height:62vh;}}
+
+/* M3: responsive room editor, fixed-size grid with scroll container */
+.td-editor-row{display:flex;align-items:end;gap:.5rem;flex-wrap:wrap}
+.td-editor-row>.td-field{flex:1 1 130px}
+.td-editor-row>button{flex:0 0 auto;margin-bottom:.25rem}
+.td-brushes{display:flex;flex-wrap:wrap;gap:.25rem;margin:.55rem 0}
+.td-brushes button{flex:0 0 auto;font-size:.78rem;line-height:1.3;padding:.3rem .5rem}
+.td-brushes button[aria-pressed=true]{outline:2px solid #c7a65b;background:#a47d3438}
+.td-editor-scroll{overflow:auto;max-height:42vh;max-width:100%;border:1px solid #7778;padding:.4rem;background:#151515}
+.td-editor-map{position:relative;width:max-content}
+.td-editor-map>img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+.td-editor-map>img[hidden]{display:none}
+.td-editor-cells{position:relative;display:grid;gap:0;user-select:none}
+.td-editor-cells>button{border-radius:0;border:1px solid #8886;min-width:0;width:28px;height:28px;min-height:0;padding:0;margin:0;line-height:1;color:#fff;background:#766c50aa;font-weight:bold}
+.td-editor-cells>button[data-cell="#"]{background:#24262adc}
+.td-editor-cells>button[data-cell="n"],.td-editor-cells>button[data-cell="o"],.td-editor-cells>button[data-cell="s"],.td-editor-cells>button[data-cell="w"]{background:#9e7029dd}
+.td-editor-cells>button[data-cell="g"],.td-editor-cells>button[data-cell="G"]{background:#963d3ddd}
+.td-editor-cells>button[data-cell="K"]{background:#846522dd}
+.td-editor-cells>button[data-cell="F"]{background:#a95227dd}
+.td-editor-cells>button[data-cell="T"],.td-editor-cells>button[data-cell="P"]{background:#60418cdd}
+.td-editor-cells>button[data-cell="E"],.td-editor-cells>button[data-cell="R"],.td-editor-cells>button[data-cell="H"]{background:#34786bdd}
+.td-editor-cells>button:focus-visible{z-index:1;outline:2px solid #fff}
+.td-invalid{color:var(--color-level-error,#c44);font-weight:600}

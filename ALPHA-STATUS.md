@@ -29,3 +29,7 @@ Nicht unabhängig in Foundry VTT 14 oder auf dem Pi getestet. Insbesondere Found
 ## GitHub-Installationsweg
 
 Versionierter Quellarchiv-Installationsbranch: `install-0.6.0-alpha.1`. Manifest: https://raw.githubusercontent.com/Shining-Moon-54/the_dungeon/install-0.6.0-alpha.1/module.json. Der gepackte Prerelease ist zusätzlich vorgesehen, aber erst nach erfolgreichem Actions-Lauf verfügbar. Eine Installation in Foundry selbst wurde noch nicht verifiziert.
+
+## Änderungen nach Alpha.1 (Entwicklungsbranch, nicht im Release)
+
+M3: grafischer Raster-Raumeditor mit Dateiauswahl, Bildvorschau, Werkzeugpalette, Undo, mehreren Karten je Paket und Kopieren gespeicherter Pakete unter neuer ID. Validierung und Persistenz abgesichert. Neun zusätzliche Logiktests; tatsächlicher Foundry-Bedientest ausstehend. Siehe docs/ROOM-EDITOR.md.

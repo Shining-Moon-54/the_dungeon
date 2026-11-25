@@ -121,6 +121,8 @@ Spieler können Übergänge anfragen; der GM führt den Transfer aus. Mehrere To
 
 ## Entwicklung
 
+**Entwicklungsstand nach Alpha.1:** Im Entwicklungsbranch wird ein grafischer Raster-Raumeditor mit Kartenbildauswahl, mehreren Karten je Paket, Validierung, JSON-Vorschau und Versionierung eigener Pakete ergänzt. Siehe [Raumeditor-Dokumentation](https://github.com/Shining-Moon-54/the_dungeon/blob/develop-0.6.0/docs/ROOM-EDITOR.md). Nicht Bestandteil des bereits veröffentlichten Alpha.1-Releases.
+
 Der aktuelle Quellcode liegt im [Entwicklungsbranch `develop-0.6.0`](https://github.com/Shining-Moon-54/the_dungeon/tree/develop-0.6.0). Versionierte Installationsbranches und GitHub-Releases sichern veröffentlichte Alpha-Stände.
 
 ```bash
