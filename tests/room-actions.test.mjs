@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {applyRoomAction,answerMatches,itemStatus,publicPuzzleText} from '../scripts/room-actions.mjs';
+import {PUZZLES,puzzleById} from '../scripts/puzzles.mjs';
+const plan={loots:[{name:'Gold',gp:10},{name:'Ring',gp:20}],traps:[{name:'Trap'}],puzzles:[{id:1},{id:13}]};
+test('actions: individual loot status and repeat rejection',()=>{const state={};const a=applyRoomAction(plan,state,'loot:0','claim');assert.equal(itemStatus(a.state,'loot:0'),'claimed');assert.equal(itemStatus(a.state,'loot:1'),'pending');assert.deepEqual(state,{});assert.throws(()=>applyRoomAction(plan,a.state,'loot:0','claim'));});
+test('actions: trap states are exclusive and validated',()=>{const a=applyRoomAction(plan,{},'trap:0','disarm');assert.equal(a.state['trap:0'],'disarmed');assert.throws(()=>applyRoomAction(plan,a.state,'trap:0','trigger'));assert.throws(()=>applyRoomAction(plan,{},'trap:0','claim'));assert.throws(()=>applyRoomAction(plan,{},'trap:9','trigger'));});
+test('actions: wrong puzzle answer leaves state unchanged; GM can accept',()=>{const a=applyRoomAction(plan,{},'puzzle:0','answer','wrong');assert.equal(a.correct,false);assert.equal(a.changed,false);assert.deepEqual(a.state,{});assert.equal(applyRoomAction(plan,{},'puzzle:0','answer',' ECHO! ').state['puzzle:0'],'solved');assert.equal(applyRoomAction(plan,{},'puzzle:0','accept').state['puzzle:0'],'solved');});
+test('actions: rune sequences accept common separators',()=>{const p=puzzleById(13);assert.ok(answerMatches(p,p.solution.replaceAll(' → ',',')));assert.ok(!answerMatches(p,''));});
+test('actions: public puzzle data contains only requested text and title',()=>{const p=publicPuzzleText(plan,'puzzle:0');assert.deepEqual(Object.keys(p).sort(),['text','title']);assert.equal(p.text,PUZZLES[0].prompt);assert.equal(publicPuzzleText(plan,'puzzle:0','hint').text,PUZZLES[0].hint);assert.throws(()=>publicPuzzleText(plan,'puzzle:0','solution'));});
